@@ -1,0 +1,25 @@
+.categorias{flex-wrap:wrap;margin:1rem 0}.dulces-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(12rem,100%),1fr));gap:.9rem}
+.dulces-grid article{background:#f4f6f9;border-radius:.8rem;padding:1rem;display:flex;flex-direction:column;align-items:flex-start}
+.dulces-grid article img{width:100%;height:8rem;object-fit:contain}.dulces-grid article h3,.ticket h3,.pago legend,.sabores legend{font-weight:700}
+.dulces-grid article strong{margin-top:auto}.dulces-grid .back,.sabores header{display:flex;align-items:center}.sabores{width:min(30rem,92vw);max-height:85vh;padding:1.5rem;border-radius:1rem;margin:auto}.sabores::backdrop{background:#0b1a309c}
+.sabores header,.linea-dulce{display:flex;align-items:center;justify-content:space-between;gap:1rem}.sabores h2,.ticket h2{font-size:1.4rem;font-weight:750}.sabores fieldset,.pago fieldset{margin:1.1rem 0}.sabores label{display:flex;align-items:center;gap:.6rem;margin:.5rem 0}.sabores button:disabled{opacity:.45}
+.linea-dulce{border-top:1px solid #dbe2ea;padding:.6rem 0}.linea-dulce small,.linea-dulce span{display:block}.linea-dulce button{padding:.25rem .7rem;border:1px solid #ced7e0;border-radius:.4rem}
+.pago label,.tickets label{display:grid;gap:.3rem;margin:.6rem 0}.pago input:not([type=checkbox]),.tickets input{width:100%;border:1px solid #9aabba;border-radius:.4rem;padding:.6rem .8rem}
+.pago input:user-invalid{border-color:#ac283b;background:#fff6f7}.pago .check{display:flex;align-items:center;gap:.6rem}.par-pago{display:flex;gap:1rem}.pago dl{border-top:1px solid #cbd3db;padding-top:.8rem}.pago dl>div:last-child{font-weight:750}
+.ticket,.tickets{max-width:46rem;margin:auto;overflow-wrap:anywhere}.ticket svg{max-width:100%}.ticket h3{margin-top:1rem}.ticket a,.tickets a,.pago a{color:#00529b;text-decoration:underline}
+@media print{.cabecera,footer,.ticket button,.ticket a,.aviso{display:none!important}.wrap.compra,.ticket{width:100%;max-width:none;border:0;padding:0}.ticket{break-inside:avoid}.ticket svg{print-color-adjust:exact}}
+
+.sabores { width: min(34rem,94vw); color: #10233d; overscroll-behavior: contain; }
+.sabores header { justify-content: flex-start; }
+.sabores header img { width: 3.5rem; height: 3.5rem; object-fit: contain; }
+.sabores header button { margin-left: auto; }
+.paso-config { margin-top: 1.2rem; font-weight: 650; color: #00529b; }
+.sabores progress { display: block; width: 100%; height: .4rem; margin-top: .4rem; accent-color: #00529b; }
+.opciones-combo { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(9rem,100%),1fr)); gap: .65rem; }
+.opciones-combo button { display: grid; align-content: center; text-align: left; padding: .8rem; min-height: 4rem; border: 1px solid #bbc9d9; border-radius: .65rem; }
+.opciones-combo button[aria-pressed=true] { background: #edf5ff; color: #004985; border-color: currentColor; box-shadow: inset 0 0 0 1px currentColor; }
+.unidades-combo,.acciones-config { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-top: 1rem; }
+.unidades-combo .contador button { width: 2.25rem; height: 2.25rem; padding: 0; }
+.acciones-config { border-top: 1px solid #dbe2ea; padding-top: 1rem; }
+.acciones-config .cta { margin: 0 0 0 auto; }
+

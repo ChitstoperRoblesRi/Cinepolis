@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "o9yJQS8fnmw=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\roble\\OneDrive\\Documentos\\Cinepolis\\backend\\Cinepolis.Infrastructure\\Cinepolis.Infrastructure.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\roble\\.nuget\\packages\\dapper\\2.1.66\\dapper.2.1.66.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\npgsql\\8.0.8\\npgsql.8.0.8.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.30\\microsoft.netcore.app.ref.8.0.30.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.30\\microsoft.windowsdesktop.app.ref.8.0.30.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.30\\microsoft.aspnetcore.app.ref.8.0.30.nupkg.sha512"
+  ],
+  "logs": []
+}

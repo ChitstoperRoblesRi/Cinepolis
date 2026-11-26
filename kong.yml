@@ -1,0 +1,12 @@
+_format_version: "3.0"
+services:
+  - name: cinepolis-api
+    url: http://host.docker.internal:5000
+    routes:
+      - name: api-v1
+        paths: [/api/v1]
+        strip_path: false
+      - name: sala-signalr
+        protocols: [http, https]
+        paths: [/hubs/sala]
+        strip_path: false

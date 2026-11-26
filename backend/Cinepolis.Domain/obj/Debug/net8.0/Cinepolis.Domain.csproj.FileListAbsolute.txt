@@ -1,0 +1,14 @@
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Debug\net8.0\Cinepolis.Domain.deps.json
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Debug\net8.0\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Debug\net8.0\Cinepolis.Domain.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.AssemblyInfoInputs.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.AssemblyInfo.cs
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.csproj.CoreCompileInputs.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\refint\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\ref\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Verificacion\Cinepolis.Domain.deps.json
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Verificacion\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Verificacion\Cinepolis.Domain.pdb

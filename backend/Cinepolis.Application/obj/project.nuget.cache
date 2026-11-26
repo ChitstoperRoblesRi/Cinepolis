@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "+nIjJeWdgV4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\roble\\OneDrive\\Documentos\\Cinepolis\\backend\\Cinepolis.Application\\Cinepolis.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.30\\microsoft.netcore.app.ref.8.0.30.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.30\\microsoft.windowsdesktop.app.ref.8.0.30.nupkg.sha512",
+    "C:\\Users\\roble\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.30\\microsoft.aspnetcore.app.ref.8.0.30.nupkg.sha512"
+  ],
+  "logs": []
+}

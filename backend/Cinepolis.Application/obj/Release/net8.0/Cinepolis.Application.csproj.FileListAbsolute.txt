@@ -1,0 +1,15 @@
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\bin\Release\net8.0\Cinepolis.Application.deps.json
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\bin\Release\net8.0\Cinepolis.Application.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\bin\Release\net8.0\Cinepolis.Application.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\bin\Release\net8.0\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\bin\Release\net8.0\Cinepolis.Domain.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.csproj.AssemblyReference.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.AssemblyInfoInputs.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.AssemblyInfo.cs
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.csproj.CoreCompileInputs.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepoli.2D9CFE4B.Up2Date
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\refint\Cinepolis.Application.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\Cinepolis.Application.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Application\obj\Release\net8.0\ref\Cinepolis.Application.dll

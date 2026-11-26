@@ -1,0 +1,17 @@
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Infrastructure.deps.json
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Infrastructure.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Infrastructure.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Application.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Application.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Release\net8.0\Cinepolis.Domain.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.AssemblyInfo.cs
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepoli.30CE606E.Up2Date
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\refint\Cinepolis.Infrastructure.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\ref\Cinepolis.Infrastructure.dll

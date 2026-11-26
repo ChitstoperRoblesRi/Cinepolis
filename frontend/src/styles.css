@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", sans-serif;
+  --color-marino: #0B1A30;
+  --color-institucional: #00529B;
+  --color-institucional-hover: #003D75;
+  --color-dorado: #F5C518;
+  --color-tarjeta: #FFFFFF;
+  --color-lienzo: #F4F6F9;
+  --color-clasificacion-a: #187343;
+  --color-clasificacion-b: #00529B;
+  --color-clasificacion-b15: #a3430b;
+  --color-clasificacion-c: #b71e34;
+}
+body { @apply m-0 bg-lienzo font-sans text-marino antialiased; }
+select { @apply mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-3 text-base font-normal disabled:opacity-60; }
+:focus-visible { outline: 3px solid #007ceb; outline-offset: 3px; }
+.badge { @apply inline-flex items-center rounded px-2 py-0.5 text-xs font-bold bg-slate-100 text-slate-800; }
+.badge[data-rating="A"], .badge[data-rating="AA"] { @apply bg-clasificacion-a text-white; }
+.badge[data-rating="B"] { @apply bg-clasificacion-b text-white; }
+.badge[data-rating="B15"] { @apply bg-clasificacion-b15 text-white; }
+.badge[data-rating="C"] { @apply bg-clasificacion-c text-white; }
+.badge[data-format*="VIP"] { @apply bg-black text-dorado; }
+.badge[data-format*="IMAX"] { background: #003ce5; color: white; }
+.badge[data-format*="4DX"] { background: #00665f; color: white; }
+.badge[data-format*="MACRO XE"], .badge[data-format*="MACROXE"] { background: #552186; color: white; }
