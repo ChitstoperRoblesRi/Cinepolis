@@ -1,5 +1,6 @@
 namespace Cinepolis.Domain;
 
+/// <summary>Valores admitidos para modificador regla tipo modificador.</summary>
 public enum ModificadorReglaTipoModificador
 {
     Flavor,
@@ -10,8 +11,10 @@ public enum ModificadorReglaTipoModificador
     Compound
 }
 
+/// <summary>Convierte entre el valor tipado y su representación en PostgreSQL.</summary>
 public static class ValoresModificadorReglaTipoModificador
 {
+    /// <summary>Interpreta el valor textual almacenado por PostgreSQL.</summary>
     public static ModificadorReglaTipoModificador DesdeTexto(string valor) => valor switch
     {
         "flavor" => ModificadorReglaTipoModificador.Flavor,
@@ -23,6 +26,7 @@ public static class ValoresModificadorReglaTipoModificador
         _ => throw new ArgumentOutOfRangeException(nameof(valor), valor, null)
     };
 
+    /// <summary>Devuelve la representación persistida del valor de dominio.</summary>
     public static string TextoSql(this ModificadorReglaTipoModificador valor) => valor switch
     {
         ModificadorReglaTipoModificador.Flavor => "flavor",

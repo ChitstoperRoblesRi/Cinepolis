@@ -1,5 +1,6 @@
 namespace Cinepolis.Domain;
 
+/// <summary>Valores admitidos para folio tipo folio.</summary>
 public enum FolioTipoFolio
 {
     Corporativo,
@@ -8,8 +9,10 @@ public enum FolioTipoFolio
     Promocional
 }
 
+/// <summary>Convierte entre el valor tipado y su representación en PostgreSQL.</summary>
 public static class ValoresFolioTipoFolio
 {
+    /// <summary>Interpreta el valor textual almacenado por PostgreSQL.</summary>
     public static FolioTipoFolio DesdeTexto(string valor) => valor switch
     {
         "Corporativo" => FolioTipoFolio.Corporativo,
@@ -19,6 +22,7 @@ public static class ValoresFolioTipoFolio
         _ => throw new ArgumentOutOfRangeException(nameof(valor), valor, null)
     };
 
+    /// <summary>Devuelve la representación persistida del valor de dominio.</summary>
     public static string TextoSql(this FolioTipoFolio valor) => valor switch
     {
         FolioTipoFolio.Corporativo => "Corporativo",

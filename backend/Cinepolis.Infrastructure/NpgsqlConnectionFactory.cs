@@ -1,13 +1,17 @@
+using Cinepolis.Application;
+using System.Data.Common;
 using Dapper;
 using Npgsql;
 using System.Data;
 
 namespace Cinepolis.Infrastructure;
 
-public sealed class NpgsqlConnectionFactory : IAsyncDisposable
+/// <summary>Configura el mapeo de Dapper y abre conexiones PostgreSQL desde el pool.</summary>
+public sealed class NpgsqlConnectionFactory : IDbConnectionFactory, IAsyncDisposable
 {
     private readonly NpgsqlDataSource source;
 
+    /// <summary>Configura el mapeo de Dapper y abre conexiones PostgreSQL desde el pool.</summary>
     public NpgsqlConnectionFactory(string connectionString)
     {
         DefaultTypeMap.MatchNamesWithUnderscores = true;
@@ -17,14 +21,18 @@ public sealed class NpgsqlConnectionFactory : IAsyncDisposable
     }
 
     // Npgsql lee timestamptz como DateTime UTC y timestamp como DateTime Unspecified.
-    public ValueTask<NpgsqlConnection> OpenAsync(CancellationToken cancellationToken) =>
-        source.OpenConnectionAsync(cancellationToken);
+    /// <summary>Abre una conexión para la operación solicitada.</summary>
+    public async ValueTask<DbConnection> OpenAsync(CancellationToken cancellationToken) =>
+        await source.OpenConnectionAsync(cancellationToken);
 
+    /// <summary>Libera el pool de conexiones.</summary>
     public ValueTask DisposeAsync() => source.DisposeAsync();
 
     private sealed class DateHandler : SqlMapper.TypeHandler<DateOnly>
     {
+        /// <summary>Convierte el valor devuelto por PostgreSQL al tipo de dominio.</summary>
         public override DateOnly Parse(object value) => value is DateTime date ? DateOnly.FromDateTime(date) : (DateOnly)value;
+        /// <summary>Asigna al parámetro el tipo y el valor temporal correspondientes.</summary>
         public override void SetValue(IDbDataParameter parameter, DateOnly value)
         {
             parameter.DbType = DbType.Date;
@@ -34,7 +42,9 @@ public sealed class NpgsqlConnectionFactory : IAsyncDisposable
 
     private sealed class TimeHandler : SqlMapper.TypeHandler<TimeOnly>
     {
+        /// <summary>Convierte el valor devuelto por PostgreSQL al tipo de dominio.</summary>
         public override TimeOnly Parse(object value) => value is TimeSpan time ? TimeOnly.FromTimeSpan(time) : (TimeOnly)value;
+        /// <summary>Asigna al parámetro el tipo y el valor temporal correspondientes.</summary>
         public override void SetValue(IDbDataParameter parameter, TimeOnly value)
         {
             parameter.DbType = DbType.Time;

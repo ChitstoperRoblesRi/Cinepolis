@@ -1,111 +1,36 @@
 using Cinepolis.Domain;
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Cinepolis.Application;
 
+/// <summary>Identidad y nombre de una categoría de dulcería.</summary>
 public sealed record CategoriaDto(int CategoriaId, string NombreCategoria);
+/// <summary>Opción seleccionable y ajuste de precio del catálogo.</summary>
 public sealed record OpcionDto(int OpcionId, string Nombre, decimal Extra, decimal? PrecioVariante);
+/// <summary>Límites de selección y opciones de un componente.</summary>
 public sealed record ReglaDto(int ReglaId, string Titulo, int Min, int Max, OpcionDto[] Opciones,
     string? GrupoTitulo, string TipoModificador, int? BloquePalomitas = null);
+/// <summary>Presentación de dulcería y reglas aplicables en su catálogo.</summary>
 public sealed record ProductoDto(int ProductoId, int CategoriaId, string NombreProducto, string Estructura,
     string? Descripcion, string? ImagenUrl, int? CatalogoId, decimal? Precio, ReglaDto[] Reglas);
+/// <summary>Productos y combos agrupados por categoría.</summary>
 public sealed record CategoriaDulceriaDto(int CategoriaId, string NombreCategoria,
     IReadOnlyList<ProductoDto> Productos, IReadOnlyList<ProductoDto> Combos);
 
-public interface IDulceriaRepository
+/// <summary>Recupera el catálogo regional de productos y combos.</summary>
+public interface IDulceriaCatalogoRepository
 {
+    /// <summary>Recupera categorías y productos para el complejo indicado.</summary>
     Task<(IReadOnlyList<CategoriaDto> Categorias, IReadOnlyList<ProductoDto> Productos)> CatalogoAsync(int? complejoId, CancellationToken token);
 }
 
-public sealed class ConsultarDulceria(IDulceriaRepository repository)
+/// <summary>Recupera el catálogo regional de productos y combos.</summary>
+public sealed class ConsultarDulceria(IDulceriaCatalogoRepository repository)
 {
-    private static string Clave(string texto) => string.Concat(texto.Trim().ToLowerInvariant()
-        .Normalize(NormalizationForm.FormD).Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark));
-
-    private static int Prioridad(string nombre) => Clave(nombre) switch
-    {
-        "jumbo" => 1,
-        "grande" or "grandes" => 2,
-        "mediano" or "mediana" or "medianos" or "medianas" => 3,
-        "chico" or "chica" or "chicos" or "chicas" => 4,
-        _ => 99
-    };
-
-    private static readonly string[] Tamanos = ["Jumbo", "Grande", "Mediano", "Chico"];
-
-    private static (int Tipo, decimal Cantidad) Medida(string nombre)
-    {
-        var m = Regex.Match(Clave(nombre),
-            @"(\d+(?:[.,]\d+)?)\s*(ml|mililitros?|l|lt|lts|litros?|oz|onzas?|g|gr|gramos?|kg|pz|pzas?|piezas?)\b");
-        if (!m.Success || !decimal.TryParse(m.Groups[1].Value.Replace(',', '.'), NumberStyles.AllowDecimalPoint,
-                CultureInfo.InvariantCulture, out var cantidad))
-            return (99, 0);
-        return m.Groups[2].Value switch
-        {
-            "ml" or "mililitro" or "mililitros" => (1, cantidad),
-            "oz" or "onza" or "onzas" => (1, cantidad * 29.5735295625m),
-            "g" or "gr" or "gramo" or "gramos" => (2, cantidad),
-            "kg" => (2, cantidad * 1000),
-            var unidad when unidad.StartsWith('p') => (3, cantidad),
-            _ => (1, cantidad * 1000)
-        };
-    }
-
-    private static ReglaDto NormalizarTamanos(ProductoDto producto, ReglaDto regla)
-    {
-        if (regla.TipoModificador == "size" && (producto.NombreProducto == "Nachos" ||
-            Clave(regla.GrupoTitulo ?? "").Contains("nachos") && regla.Opciones.Any(o => o.Nombre == "Grandes")))
-        {
-            var tamanos = regla.Opciones.Select(o => Prioridad(o.Nombre) switch
-            {
-                2 => o with { Nombre = "Grandes" },
-                4 => o with { Nombre = "Chicos" },
-                _ => o
-            });
-            return regla with { Opciones = tamanos.OrderBy(o => Prioridad(o.Nombre)).ToArray() };
-        }
-        var titulo = Clave(regla.Titulo);
-        var grupo = Clave(regla.GrupoTitulo ?? "");
-        static bool EsPresentacion(string texto) => texto.Contains("tamano") || texto.Contains("presentacion");
-        if (!EsPresentacion(titulo) && (titulo.Contains("sabor") ||
-            !(EsPresentacion(grupo) || regla.TipoModificador.Equals("size", StringComparison.OrdinalIgnoreCase))))
-            return regla;
-
-        var baseProducto = Clave(producto.NombreProducto);
-        decimal Precio(OpcionDto o) => o.PrecioVariante ?? (producto.Precio ?? 0) + o.Extra;
-        var conocidos = regla.Opciones.Where(o => Prioridad(o.Nombre) <= Tamanos.Length).ToArray();
-        var genericas = regla.Opciones.Where(o => Clave(o.Nombre) == baseProducto).ToArray();
-        var opciones = regla.Opciones.ToArray();
-        if (genericas.Length == 1 && regla.Opciones.All(o => Medida(o.Nombre).Tipo == 99))
-        {
-            var generica = genericas[0];
-            var disponibles = Enumerable.Range(1, Tamanos.Length).Where(rango => conocidos.All(o =>
-                Prioridad(o.Nombre) != rango && (Precio(o) == Precio(generica) ||
-                (Precio(o) > Precio(generica)) == (Prioridad(o.Nombre) < rango)))).ToArray();
-            // Con dos presentaciones, la inmediatamente inferior a Jumbo es Grande.
-            var rangoElegido = disponibles.Length == 1 ? disponibles[0] :
-                conocidos.Any(o => Prioridad(o.Nombre) == 1 && Precio(o) > Precio(generica))
-                    && disponibles.Contains(2) ? 2 : 0;
-            if (rangoElegido > 0)
-                opciones[Array.IndexOf(opciones, generica)] = generica with { Nombre = Tamanos[rangoElegido - 1] };
-        }
-        opciones = opciones.Select(o => (Opcion: o, Rango: Prioridad(o.Nombre), Medida: Medida(o.Nombre)))
-            .OrderByDescending(x => regla.BloquePalomitas.HasValue && producto.Estructura == "combo" && baseProducto != "palomitas" &&
-                Clave(x.Opcion.Nombre) == "para llevar")
-            .ThenBy(x => x.Rango).ThenBy(x => x.Medida.Tipo).ThenByDescending(x => x.Medida.Cantidad)
-            .ThenByDescending(x => Precio(x.Opcion)).ThenBy(x => x.Opcion.OpcionId)
-            .Select(x => x.Rango <= Tamanos.Length ? x.Opcion with { Nombre = Tamanos[x.Rango - 1] } : x.Opcion)
-            .ToArray();
-        return regla with { Opciones = opciones };
-    }
-
+    /// <summary>Devuelve los resultados disponibles para los filtros indicados.</summary>
     public async Task<IReadOnlyList<CategoriaDulceriaDto>> ListarAsync(int? complejoId, CancellationToken token)
     {
         var (categorias, productos) = await repository.CatalogoAsync(complejoId, token);
-        var grupos = productos.Select(p => p with { Reglas = p.Reglas.Select(r => NormalizarTamanos(p, r)).ToArray() })
-            .ToLookup(p => (p.CategoriaId, EsCombo: p.Estructura == ProductoDulceriaEstructura.Combo.TextoSql()));
+        var grupos = productos.ToLookup(p => (p.CategoriaId, EsCombo: p.Estructura == ProductoDulceriaEstructura.Combo.TextoSql()));
         return categorias.Select(c => new CategoriaDulceriaDto(c.CategoriaId, c.NombreCategoria,
             grupos[(c.CategoriaId, false)].ToArray(), grupos[(c.CategoriaId, true)].ToArray())).ToArray();
     }

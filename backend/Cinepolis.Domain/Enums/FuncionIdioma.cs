@@ -1,5 +1,6 @@
 namespace Cinepolis.Domain;
 
+/// <summary>Valores admitidos para funcion idioma.</summary>
 public enum FuncionIdioma
 {
     Español,
@@ -7,8 +8,10 @@ public enum FuncionIdioma
     Doblada
 }
 
+/// <summary>Convierte entre el valor tipado y su representación en PostgreSQL.</summary>
 public static class ValoresFuncionIdioma
 {
+    /// <summary>Interpreta el valor textual almacenado por PostgreSQL.</summary>
     public static FuncionIdioma DesdeTexto(string valor) => valor switch
     {
         "Español" => FuncionIdioma.Español,
@@ -17,6 +20,7 @@ public static class ValoresFuncionIdioma
         _ => throw new ArgumentOutOfRangeException(nameof(valor), valor, null)
     };
 
+    /// <summary>Devuelve la representación persistida del valor de dominio.</summary>
     public static string TextoSql(this FuncionIdioma valor) => valor switch
     {
         FuncionIdioma.Español => "Español",

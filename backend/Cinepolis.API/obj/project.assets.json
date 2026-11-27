@@ -320,7 +320,10 @@
         },
         "runtime": {
           "bin/placeholder/Cinepolis.Infrastructure.dll": {}
-        }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       }
     }
   },

@@ -1,17 +1,24 @@
+using Cinepolis.Domain;
 using System.Text.Json;
 using Cinepolis.Application;
 using Dapper;
-using Npgsql;
+using System.Data.Common;
 
 namespace Cinepolis.Infrastructure;
 
-public sealed class DulceriaRepository(NpgsqlConnectionFactory factory) : IDulceriaRepository
+/// <summary>Recupera el catálogo regional de productos y combos.</summary>
+public sealed class DulceriaRepository(IDbConnectionFactory factory, NormalizadorCatalogo normalizador,
+    CalculadoraPrecioDulceriaContext calculadora) : IDulceriaCatalogoRepository
 {
     private sealed record Fila(int ProductoId, int CategoriaId, string NombreProducto, string Estructura,
-        string? Descripcion, string? ImagenUrl, int? CatalogoId, decimal? Precio, string Reglas);
+        string? Descripcion, string? ImagenUrl, int? CatalogoId, decimal? Precio, string Reglas, string? SkuProducto, bool EsCombo);
+    private sealed record OpcionCatalogo(int OpcionId, string Sku, string Nombre, PrecioOpcionCatalogo Importe,
+        bool PrecioVariante);
+    private sealed record ReglaCatalogo(int ReglaId, string Titulo, int Min, int Max, OpcionCatalogo[] Opciones,
+        string? GrupoTitulo, string TipoModificador, int? BloquePalomitas);
 
-    internal static async Task<ProductoDto[]> LeerProductos(NpgsqlConnection db, int? complejoId, int[]? ids,
-        NpgsqlTransaction? tx, CancellationToken token, int? catalogoId = null)
+    internal async Task<ProductoDto[]> LeerProductos(DbConnection db, int? complejoId, int[]? ids,
+        DbTransaction? tx, CancellationToken token, int? catalogoId = null)
     {
         const string sql = """
             WITH bebidas AS (
@@ -33,7 +40,7 @@ public sealed class DulceriaRepository(NpgsqlConnectionFactory factory) : IDulce
                 ) variantes GROUP BY catalogo_id, sku
             )
             SELECT p.producto_id, p.categoria_id, p.nombre_producto, p.estructura, p.descripcion, p.imagen_url,
-                cat.catalogo_id, cat.precio_actual AS precio, coalesce(reglas.lista, '[]')::text AS reglas
+                cat.catalogo_id, cat.precio_actual AS precio, coalesce(reglas.lista, '[]')::text AS reglas, p.api_id AS sku_producto, tipo.es_combo
             FROM public.producto_dulceria p
             JOIN public.categoria_dulceria categoria USING (categoria_id)
             CROSS JOIN LATERAL (SELECT categoria.nombre_categoria = @CategoriaCombos
@@ -104,39 +111,12 @@ public sealed class DulceriaRepository(NpgsqlConnectionFactory factory) : IDulce
                         AS eleccion_unica, ref.importe_base, ref.importe_incluido, ref.importe_llevar, ref.importe_sku_principal,
                         (SELECT count(*) FROM referencias WHERE obligatoria) = 1 AS unica_obligatoria
                     FROM unicas u JOIN referencias ref USING (grupo_id)
-                ), precios AS (
-                    SELECT c.*, CASE
-                        WHEN tipo.es_combo AND api_id_opcion = @SkuAguaLitro AND tipo_modificador = @TipoSabor
-                            AND lower(grupo_titulo) LIKE ANY(@GruposRefresco)
-                            THEN CASE WHEN precio_extra >= base_incluida THEN precio_extra - base_incluida ELSE precio_extra END
-                        WHEN p.nombre_producto = @Nachos AND tipo_modificador = @TipoTamano
-                            AND importe_sku_principal IS NOT NULL THEN precio_extra - importe_sku_principal
-                        WHEN p.estructura = @Combo AND lower(p.nombre_producto) <> @Palomitas
-                            AND bloque_palomitas IS NOT NULL AND tipo_modificador = @TipoTamano
-                            AND importe_llevar IS NOT NULL AND lower(trim(nombre_opcion)) = @ParaLlevar THEN 0
-                        WHEN p.estructura = @Combo AND lower(p.nombre_producto) <> @Palomitas
-                            AND bloque_palomitas IS NOT NULL AND tipo_modificador = @TipoTamano
-                            AND importe_llevar IS NOT NULL AND lower(trim(nombre_opcion)) = ANY(@EtiquetasJumbo)
-                            THEN -abs(precio_extra - importe_llevar)
-                        -- Una elección obligatoria con precios completos usa la presentación incluida como referencia.
-                        WHEN categoria.nombre_categoria = @CategoriaCombos AND eleccion_unica AND bloque_palomitas IS NULL
-                            AND importe_base > 0 AND importe_incluido > 0
-                            THEN greatest(0, precio_extra - importe_incluido)
-                        WHEN base_incluida IS NOT NULL AND precio_extra >= base_incluida THEN precio_extra - base_incluida
-                        -- Precio completo de variante, incluso en grupos que mezclan ceros e importes finales.
-                        WHEN eleccion_unica AND precio_extra >= precio_actual THEN precio_extra - precio_actual
-                        -- En helados el importe común de los sabores ya está cubierto por el precio de catálogo.
-                        WHEN eleccion_unica AND unica_obligatoria AND categoria.nombre_categoria = @CategoriaHelados
-                            THEN precio_extra - importe_base
-                        ELSE precio_extra END AS diferencial
-                    FROM clasificadas c
                 ), grupos AS (
                     SELECT grupo_id, min(grupo_orden) AS orden, min(bloque_palomitas) AS bloque_palomitas,
                         coalesce(jsonb_agg(jsonb_build_object(
-                        'OpcionId', opcion_id, 'Nombre', CASE
+                        'OpcionId', opcion_id, 'Sku', api_id_opcion, 'Nombre', CASE
                             WHEN tipo.es_combo AND tipo_modificador = @TipoTamano AND lower(grupo_titulo) LIKE ANY(@GruposRefresco)
                                 AND lower(trim(nombre_opcion)) = @Refresco THEN @Jumbo
-                            WHEN p.api_id = @ComboMicha AND lower(trim(nombre_opcion)) = @MichaAnterior THEN @ChocolateMicha
                             WHEN tipo_modificador = @TipoTamano AND lower(grupo_titulo) LIKE @GrupoNachos
                                 AND api_id_opcion = @SkuNachosGrandes THEN @Grandes
                             WHEN tipo.es_combo AND api_id_opcion = @SkuAguaLitro AND tipo_modificador = @TipoSabor
@@ -146,21 +126,27 @@ public sealed class DulceriaRepository(NpgsqlConnectionFactory factory) : IDulce
                             WHEN bloque_palomitas IS NOT NULL AND p.estructura = @Combo AND lower(p.nombre_producto) <> @Palomitas
                                 AND tipo_modificador = @TipoTamano
                                 AND lower(trim(nombre_opcion)) = @Palomitas THEN @Jumbo
-                            WHEN tipo_modificador = @TipoTamano AND api_id_opcion = @SkuAguaLitro
-                                AND lower(trim(nombre_opcion)) = @EtiquetaAgua
-                                THEN @CapacidadAgua
-                            ELSE nombre_opcion END, 'Extra', diferencial,
-                        'PrecioVariante', CASE WHEN eleccion_unica AND unica_obligatoria THEN precio_actual + diferencial END
+                            ELSE nombre_opcion END,
+                        'Importe', jsonb_build_object(
+                            'Extra', precio_extra, 'PrecioCatalogo', precio_actual, 'BaseBebida', base_incluida,
+                            'SkuPrincipal', importe_sku_principal, 'ParaLlevar', importe_llevar,
+                            'Incluido', importe_incluido, 'Minimo', importe_base, 'EleccionUnica', eleccion_unica,
+                            'AguaEnCombo', tipo.es_combo AND api_id_opcion = @SkuAguaLitro AND tipo_modificador = @TipoSabor
+                                AND coalesce(lower(grupo_titulo) LIKE ANY(@GruposRefresco), false),
+                            'TamanoNachos', p.nombre_producto = @Nachos AND tipo_modificador = @TipoTamano,
+                            'TamanoPalomitasCombo', p.estructura = @Combo AND lower(p.nombre_producto) <> @Palomitas
+                                AND bloque_palomitas IS NOT NULL AND tipo_modificador = @TipoTamano,
+                            'NombreOrigen', nombre_opcion, 'OpcionIncluidaCombo', categoria.nombre_categoria = @CategoriaCombos
+                                AND eleccion_unica AND bloque_palomitas IS NULL,
+                            'VarianteHelado', eleccion_unica AND unica_obligatoria AND categoria.nombre_categoria = @CategoriaHelados),
+                        'PrecioVariante', eleccion_unica AND unica_obligatoria
                     ) ORDER BY opcion_id) FILTER (WHERE activo), '[]') AS opciones
-                    FROM precios GROUP BY grupo_id
+                    FROM clasificadas GROUP BY grupo_id
                 )
                 SELECT jsonb_agg(jsonb_build_object('ReglaId', r.regla_id, 'Titulo', r.titulo_regla,
                     'GrupoTitulo', n.etiqueta, 'TipoModificador', r.tipo_modificador, 'BloquePalomitas', g.bloque_palomitas,
                     'Min', r.min_items, 'Max', r.max_items, 'Opciones', g.opciones
-                ) ORDER BY CASE WHEN tipo.es_combo THEN
-                        CASE WHEN g.bloque_palomitas IS NOT NULL THEN 0
-                             WHEN n.nombre_unico LIKE ANY(@GruposBebida) THEN 1 ELSE 2 END END,
-                    g.orden,
+                ) ORDER BY g.orden,
                     CASE WHEN tipo.es_combo THEN n.nombre_unico END,
                     CASE WHEN tipo.es_combo THEN CASE r.tipo_modificador
                             WHEN @TipoTamano THEN 0 WHEN @TipoSabor THEN 1 ELSE 2 END END,
@@ -178,22 +164,35 @@ public sealed class DulceriaRepository(NpgsqlConnectionFactory factory) : IDulce
         var parametros = new { complejoId, ids, catalogoId, TiposVariante = new[] { "flavor", "size" },
             Nachos = "Nachos", Grandes = "Grandes", Maxicombo = "%maxicombo%", Compartir = "Para Compartir",
             TipoSabor = "flavor", Refresco = "refresco", AguaCiel = "Agua Ciel® 1 lt",
-            ComboMicha = "16454", MichaAnterior = "helado micha no usar", ChocolateMicha = "M&M's®",
             GrupoNachos = "%nachos%", SkuNachosGrandes = "14175", NombreCombo = "%combo%", ProductosJuntos = "% + %",
-            GruposBebida = new[] { "%refresco%", "%bebida%", "%icee%", "%agua%", "%frapp%", "%cerveza%", "%café%", "%capuccino%" },
             GruposDosBebidas = new[] { "%refresco", "%icee®" }, GruposRefresco = new[] { "%refresco%", "%bebida%" },
             CombosDosBebidas = new[] { "17497", "17509", "14179", "17500", "16454", "17504" },
             CategoriaHelados = "Helados", TipoTamano = "size", SkuAguaLitro = "275", SkuAguaRegional = "18795",
-            EtiquetaAgua = "agua embotellada", CapacidadAgua = "1 lt", GrupoPalomitas = "%palomitas%",
+            GrupoPalomitas = "%palomitas%",
             Palomitas = "palomitas", Combo = "combo", Jumbo = "Jumbo", CategoriaCombos = "Combos",
-            ParaLlevar = "para llevar", EtiquetasJumbo = new[] { "palomitas", "jumbo" },
+            ParaLlevar = "para llevar",
             BebidasIncluidas = new[] { "Agua Embotellada", "Refresco", "ICEE®" },
             CombosCiel = new[] { "14511", "26165" }, GrupoAgua = "%agua%" };
         var filas = await db.QueryAsync<Fila>(new CommandDefinition(sql, parametros, tx, cancellationToken: token));
-        return filas.Select(p => new ProductoDto(p.ProductoId, p.CategoriaId, p.NombreProducto, p.Estructura,
-            p.Descripcion, p.ImagenUrl, p.CatalogoId, p.Precio, JsonSerializer.Deserialize<ReglaDto[]>(p.Reglas)!)).ToArray();
+        return filas.Select(NormalizarFila).ToArray();
     }
 
+    private ProductoDto NormalizarFila(Fila fila)
+    {
+        var origen = JsonSerializer.Deserialize<ReglaCatalogo[]>(fila.Reglas)!;
+        var reglas = origen.Select(r => new ReglaDto(r.ReglaId, r.Titulo, r.Min, r.Max,
+            r.Opciones.Select(o =>
+            {
+                var extra = calculadora.Diferencial(o.Importe);
+                return new OpcionDto(o.OpcionId, o.Nombre, extra, o.PrecioVariante ? o.Importe.PrecioCatalogo + extra : null);
+            }).ToArray(), r.GrupoTitulo, r.TipoModificador, r.BloquePalomitas)).ToArray();
+        var producto = new ProductoDto(fila.ProductoId, fila.CategoriaId, fila.NombreProducto, fila.Estructura,
+            fila.Descripcion, fila.ImagenUrl, fila.CatalogoId, fila.Precio, reglas);
+        var claves = origen.SelectMany(r => r.Opciones).ToDictionary(o => o.OpcionId, o => o.Sku);
+        return normalizador.Normalizar(producto, new(fila.SkuProducto, fila.EsCombo, claves));
+    }
+
+    /// <summary>Recupera categorías y productos para el complejo indicado.</summary>
     public async Task<(IReadOnlyList<CategoriaDto> Categorias, IReadOnlyList<ProductoDto> Productos)> CatalogoAsync(int? complejoId, CancellationToken token)
     {
         await using var db = await factory.OpenAsync(token);

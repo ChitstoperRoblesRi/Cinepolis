@@ -1,15 +1,18 @@
 using Cinepolis.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Npgsql;
+using Cinepolis.Application;
 
 namespace Cinepolis.API;
 
-public sealed class PostgresHealthCheck(NpgsqlConnectionFactory factory) : IHealthCheck
+/// <summary>Verifica la conectividad con PostgreSQL.</summary>
+public sealed class PostgresHealthCheck(IDbConnectionFactory factory) : IHealthCheck
 {
+    /// <summary>Verifica la conectividad con PostgreSQL.</summary>
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken)
     {
         await using var connection = await factory.OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("SELECT 1", connection);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT 1";
         await command.ExecuteScalarAsync(cancellationToken);
         return HealthCheckResult.Healthy();
     }

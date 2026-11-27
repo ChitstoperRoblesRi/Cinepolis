@@ -22,3 +22,4 @@ C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bi
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Verificacion\Cinepolis.Domain.dll
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Verificacion\Cinepolis.Application.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\bin\Verificacion\Cinepolis.Domain.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Debug\net8.0\Cinepolis.Infrastructure.sourcelink.json

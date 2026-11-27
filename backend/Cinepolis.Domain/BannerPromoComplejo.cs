@@ -1,13 +1,9 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Cinepolis.Domain;
 
-[Table("banner_promo_complejo", Schema = "public")]
+/// <summary>Entidad de banner promo complejo del sistema de cine.</summary>
 public sealed class BannerPromoComplejo
 {
-    [Column("banner_id", TypeName = "integer")]
     public int BannerId { get; init; }
 
-    [Column("complejo_id", TypeName = "integer")]
     public int ComplejoId { get; init; }
 }

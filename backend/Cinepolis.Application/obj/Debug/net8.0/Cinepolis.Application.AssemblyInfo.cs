@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Cinepolis.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04ea83aff1737ea131d880a1213a1c80de824c03")]
 [assembly: System.Reflection.AssemblyProductAttribute("Cinepolis.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Cinepolis.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,5 +1,6 @@
 namespace Cinepolis.Domain;
 
+/// <summary>Valores admitidos para pelicula clasificacion.</summary>
 public enum PeliculaClasificacion
 {
     A,
@@ -12,8 +13,10 @@ public enum PeliculaClasificacion
     SC
 }
 
+/// <summary>Convierte entre el valor tipado y su representación en PostgreSQL.</summary>
 public static class ValoresPeliculaClasificacion
 {
+    /// <summary>Interpreta el valor textual almacenado por PostgreSQL.</summary>
     public static PeliculaClasificacion DesdeTexto(string valor) => valor switch
     {
         "A" => PeliculaClasificacion.A,
@@ -27,6 +30,7 @@ public static class ValoresPeliculaClasificacion
         _ => throw new ArgumentOutOfRangeException(nameof(valor), valor, null)
     };
 
+    /// <summary>Devuelve la representación persistida del valor de dominio.</summary>
     public static string TextoSql(this PeliculaClasificacion valor) => valor switch
     {
         PeliculaClasificacion.A => "A",

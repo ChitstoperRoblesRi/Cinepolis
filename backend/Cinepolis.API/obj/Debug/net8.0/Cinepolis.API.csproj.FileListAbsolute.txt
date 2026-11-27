@@ -75,3 +75,4 @@ C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\bin\Verificac
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\bin\Verificacion\Cinepolis.Application.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\bin\Verificacion\Cinepolis.Infrastructure.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\bin\Verificacion\Cinepolis.Domain.pdb
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\obj\Debug\net8.0\Cinepolis.API.sourcelink.json

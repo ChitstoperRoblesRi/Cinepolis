@@ -1,18 +1,18 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Net.Mail;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Cinepolis.API;
 
+/// <summary>Configura la firma y la validación de los tokens del programa Club.</summary>
 public sealed class TokensClub
 {
     private const string Emisor = "Cinepolis.API";
     private const string Audiencia = "Cinepolis.Club";
     private readonly SymmetricSecurityKey clave;
 
+    /// <summary>Configura la firma y la validación de los tokens del programa Club.</summary>
     public TokensClub(IConfiguration config, IHostEnvironment environment)
     {
         var secreto = config["Jwt:ClaveBase64"];
@@ -23,6 +23,7 @@ public sealed class TokensClub
         clave = new(bytes);
     }
 
+    /// <summary>Define los criterios de validación de tokens de acceso.</summary>
     public void Configurar(JwtBearerOptions opciones)
     {
         opciones.MapInboundClaims = false;
@@ -34,6 +35,7 @@ public sealed class TokensClub
         };
     }
 
+    /// <summary>Emite una credencial temporal para el titular.</summary>
     public RespuestaLogin Emitir(int socio)
     {
         var vence = DateTime.UtcNow.AddHours(1);
@@ -42,18 +44,5 @@ public sealed class TokensClub
         return new(new JwtSecurityTokenHandler().WriteToken(jwt), vence);
     }
 }
+/// <summary>Token de acceso del socio y fecha de expiración UTC.</summary>
 public sealed record RespuestaLogin(string AccessToken, DateTime ExpiraUtc);
-
-public sealed class CorreoOtp(IConfiguration config)
-{
-    public async Task EnviarAsync(string correo, string codigo, CancellationToken token)
-    {
-        var opciones = config.GetSection("Smtp");
-        using var smtp = new SmtpClient(opciones["Host"] ?? throw new InvalidOperationException("Falta Smtp:Host."),
-            opciones.GetValue("Puerto", 587)) { EnableSsl = opciones.GetValue("Tls", true) };
-        if (opciones["Usuario"] is string usuario) smtp.Credentials = new NetworkCredential(usuario, opciones["Clave"]);
-        using var mensaje = new MailMessage(opciones["De"] ?? throw new InvalidOperationException("Falta Smtp:De."),
-            correo, "Código de acceso a Club Cinépolis", $"Tu código es {codigo}. Vence en cinco minutos.");
-        await smtp.SendMailAsync(mensaje, token);
-    }
-}

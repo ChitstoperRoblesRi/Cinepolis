@@ -1,16 +1,20 @@
+using Npgsql;
+using Cinepolis.Domain;
 using System.Security.Cryptography;
 using Cinepolis.Application;
 using Dapper;
-using Npgsql;
+using System.Data.Common;
 
 namespace Cinepolis.Infrastructure;
 
-public sealed class ClubRepository(NpgsqlConnectionFactory factory) : IClubRepository
+/// <summary>Accede a códigos, cuentas y compras del programa Club.</summary>
+public sealed class ClubRepository(IDbConnectionFactory factory) : IAccesoClubRepository, IClubQueryRepository
 {
-    private static Task SerializarCorreo(NpgsqlConnection db, NpgsqlTransaction tx, string correo, CancellationToken token) =>
+    private static Task SerializarCorreo(DbConnection db, DbTransaction tx, string correo, CancellationToken token) =>
         db.ExecuteAsync(new CommandDefinition("SELECT pg_advisory_xact_lock(hashtextextended(@Correo, 0))",
             new { correo }, tx, cancellationToken: token));
 
+    /// <summary>Registra un código si ha transcurrido el intervalo de reenvío.</summary>
     public async Task<bool> CrearCodigoAsync(string correo, string codigo, CancellationToken token)
     {
         const string reciente = """
@@ -32,6 +36,7 @@ public sealed class ClubRepository(NpgsqlConnectionFactory factory) : IClubRepos
         return true;
     }
 
+    /// <summary>Valida el código y devuelve la identidad del socio.</summary>
     public async Task<int?> AutenticarAsync(Login login, Registro? registro, CancellationToken token)
     {
         const string verificar = """
@@ -82,12 +87,13 @@ public sealed class ClubRepository(NpgsqlConnectionFactory factory) : IClubRepos
         return socio;
     }
 
+    /// <summary>Recupera el historial de compras del socio autenticado.</summary>
     public async Task<IEnumerable<CompraClub>> ComprasAsync(int socioId, CancellationToken token)
     {
         const string sql = """
             SELECT fo.codigo AS folio, p.titulo, c.nombre_comercial AS complejo,
                 f.fecha_funcion + f.hora_inicio AS horario, v.importe_total AS total, fo.estado,
-                (fo.estado = 'activo' AND f.activa AND LOCALTIMESTAMP < f.fecha_funcion + f.hora_termino
+                (fo.estado = @Activo AND f.activa AND LOCALTIMESTAMP < f.fecha_funcion + f.hora_termino
                     + CASE WHEN f.hora_termino < f.hora_inicio THEN interval '1 day' ELSE interval '0' END) AS activa
             FROM public.venta v JOIN public.folio fo USING (venta_id)
             JOIN LATERAL (SELECT DISTINCT a.funcion_id FROM public.detalle_venta_boleto d
@@ -95,13 +101,14 @@ public sealed class ClubRepository(NpgsqlConnectionFactory factory) : IClubRepos
             JOIN public.funcion f USING (funcion_id)
             JOIN public.pelicula p ON p.pelicula_id = f.pelicula_id JOIN public.sala s ON s.sala_id = f.sala_id
             JOIN public.complejo c ON c.complejo_id = s.complejo_id
-            WHERE v.socio_id = @SocioId AND starts_with(fo.codigo, 'WEB-')
+            WHERE v.socio_id = @SocioId AND starts_with(fo.codigo, @Prefijo)
             ORDER BY v.fecha_venta DESC, fo.codigo
             """;
         await using var db = await factory.OpenAsync(token);
-        return await db.QueryAsync<CompraClub>(new CommandDefinition(sql, new { socioId }, cancellationToken: token));
+        return await db.QueryAsync<CompraClub>(new CommandDefinition(sql, new { socioId, Activo = "activo", FolioCompra.Prefijo }, cancellationToken: token));
     }
 
+    /// <summary>Recupera los datos y beneficios de la cuenta del socio.</summary>
     public async Task<PerfilClub?> PerfilAsync(int socioId, CancellationToken token)
     {
         const string sql = """

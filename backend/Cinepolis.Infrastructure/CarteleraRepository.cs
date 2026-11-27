@@ -5,8 +5,10 @@ using System.Text;
 
 namespace Cinepolis.Infrastructure;
 
-public sealed class CarteleraRepository(NpgsqlConnectionFactory factory) : ICarteleraRepository
+/// <summary>Consulta fichas técnicas y funciones de cartelera.</summary>
+public sealed class CarteleraRepository(IDbConnectionFactory factory) : IPeliculaQueryRepository, IFuncionesCarteleraRepository
 {
+    /// <summary>Recupera la ficha de la película solicitada.</summary>
     public async Task<FichaPelicula?> FichaAsync(int id, CancellationToken token)
     {
         const string sql = """
@@ -27,6 +29,7 @@ public sealed class CarteleraRepository(NpgsqlConnectionFactory factory) : ICart
         return await db.QuerySingleOrDefaultAsync<FichaPelicula>(new CommandDefinition(sql, parametros, cancellationToken: token));
     }
 
+    /// <summary>Obtiene las funciones de las películas según los filtros.</summary>
     public async Task<IReadOnlyList<FuncionCartelera>> FuncionesAsync(FiltrosCartelera filtros, int? peliculaId, CancellationToken token)
     {
         var sql = new StringBuilder("""

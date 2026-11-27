@@ -1,15 +1,17 @@
 using Cinepolis.Application;
 using Cinepolis.Domain;
 using Dapper;
-using Npgsql;
+using System.Data.Common;
 
 namespace Cinepolis.Infrastructure;
 
-public sealed class AsientoRepository(NpgsqlConnectionFactory factory) : IAsientoRepository
+/// <summary>Accede al estado de las butacas de una función.</summary>
+public sealed class AsientoRepository(IDbConnectionFactory factory) : IFuncionAsientosRepository, IReservaAsientosRepository, IReservasVencidasRepository
 {
     private const string PrefijoReserva = "sala:";
     private const int MinutosReserva = 7;
 
+    /// <summary>Recupera la geometría, disponibilidad y tarifas de la sala.</summary>
     public async Task<MapaSala?> LeerPorFuncionAsync(int funcionId, CancellationToken token)
     {
         const string sql = """
@@ -48,7 +50,7 @@ public sealed class AsientoRepository(NpgsqlConnectionFactory factory) : IAsient
         return sala is null ? null : new(funcionId, sala, asientos, tarifas);
     }
 
-    private static Task<int?> TomarAsientoAsync(NpgsqlConnection db, NpgsqlTransaction tx, int funcionId, int asientoId, CancellationToken token)
+    private static Task<int?> TomarAsientoAsync(DbConnection db, DbTransaction tx, int funcionId, int asientoId, CancellationToken token)
     {
         const string sql = """
             SELECT asiento_id FROM public.asiento
@@ -60,7 +62,7 @@ public sealed class AsientoRepository(NpgsqlConnectionFactory factory) : IAsient
     // Los llamadores ya tienen los cerrojos de los asientos. Una sentencia nueva bajo READ COMMITTED
     // ve el carrito confirmado por el titular anterior, incluso si hubo que esperar su cerrojo.
     private static async Task<IReadOnlyList<CambioEstadoAsiento>> CerrarReservasAsync(
-        NpgsqlConnection db, NpgsqlTransaction tx, int[] ids, string? titular, CancellationToken token)
+        DbConnection db, DbTransaction tx, int[] ids, string? titular, CancellationToken token)
     {
         const string sql = """
             WITH cerrados AS (
@@ -82,6 +84,7 @@ public sealed class AsientoRepository(NpgsqlConnectionFactory factory) : IAsient
         return (await db.QueryAsync<CambioEstadoAsiento>(new CommandDefinition(sql, parametros, tx, cancellationToken: token))).AsList();
     }
 
+    /// <summary>Reserva una butaca disponible para la conexión solicitante.</summary>
     public async Task<bool> SeleccionarAsync(int funcionId, int asientoId, string conexion, CancellationToken token)
     {
         const string tomar = """
@@ -109,6 +112,7 @@ public sealed class AsientoRepository(NpgsqlConnectionFactory factory) : IAsient
         return true;
     }
 
+    /// <summary>Libera una butaca reservada por la conexión solicitante.</summary>
     public async Task<bool> LiberarAsync(int funcionId, int asientoId, string conexion, CancellationToken token)
     {
         await using var db = await factory.OpenAsync(token);
@@ -119,6 +123,7 @@ public sealed class AsientoRepository(NpgsqlConnectionFactory factory) : IAsient
         return cambios.Count != 0;
     }
 
+    /// <summary>Libera las reservas caducadas y devuelve los cambios confirmados.</summary>
     public async Task<IReadOnlyList<CambioEstadoAsiento>> LiberarVencidosAsync(CancellationToken token)
     {
         const string sql = """

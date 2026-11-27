@@ -3,8 +3,10 @@ using Dapper;
 
 namespace Cinepolis.Infrastructure;
 
-public sealed class UbicacionesRepository(NpgsqlConnectionFactory factory) : IUbicacionesRepository
+/// <summary>Consulta ciudades y complejos disponibles.</summary>
+public sealed class UbicacionesRepository(IDbConnectionFactory factory) : IComplejoQueryRepository
 {
+    /// <summary>Lista las ciudades con presencia comercial.</summary>
     public async Task<IReadOnlyList<CiudadDto>> CiudadesAsync(CancellationToken token)
     {
         const string sql = """
@@ -16,6 +18,7 @@ public sealed class UbicacionesRepository(NpgsqlConnectionFactory factory) : IUb
         return (await db.QueryAsync<CiudadDto>(new CommandDefinition(sql, cancellationToken: token))).AsList();
     }
 
+    /// <summary>Lista los complejos según la ciudad solicitada.</summary>
     public async Task<IReadOnlyList<ComplejoDto>> ComplejosAsync(int? ciudadId, CancellationToken token)
     {
         const string sql = """

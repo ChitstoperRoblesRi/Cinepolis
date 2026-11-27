@@ -1,23 +1,22 @@
-using System.Security.Cryptography;
 using Cinepolis.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinepolis.API;
 
+/// <summary>Expone las operaciones HTTP de auth.</summary>
 [ApiController, Route("api/v1/auth")]
-public sealed class AuthController(IClubRepository club, TokensClub jwt, CorreoOtp correoOtp) : ControllerBase
+public sealed class AuthController(AccesoClub acceso, TokensClub jwt) : ControllerBase
 {
+    /// <summary>Solicita el envío de un código de acceso.</summary>
     [HttpPost("codigo")]
     public async Task<IActionResult> Codigo(SolicitarCodigo solicitud, CancellationToken token)
     {
-        string correo = solicitud.Correo.Trim().ToLowerInvariant();
-        string codigo = RandomNumberGenerator.GetInt32(1000000).ToString("D6");
-        if (!await club.CrearCodigoAsync(correo, codigo, token))
+        if (!await acceso.SolicitarCodigoAsync(solicitud, token))
             return Problem(statusCode: 429, title: "Espera un minuto antes de solicitar otro código.");
-        await correoOtp.EnviarAsync(correo, codigo, token);
         return Accepted();
     }
 
+    /// <summary>Registra al socio después de verificar su código.</summary>
     [HttpPost("registro")]
     public async Task<ActionResult<RespuestaLogin>> Registrar(Registro registro, CancellationToken token)
     {
@@ -29,12 +28,13 @@ public sealed class AuthController(IClubRepository club, TokensClub jwt, CorreoO
         return await Acceso(new(registro.Correo, registro.Codigo), registro, token);
     }
 
+    /// <summary>Inicia sesión con correo y código de acceso.</summary>
     [HttpPost("login")]
     public Task<ActionResult<RespuestaLogin>> Iniciar(Login login, CancellationToken token) => Acceso(login, null, token);
 
     private async Task<ActionResult<RespuestaLogin>> Acceso(Login login, Registro? registro, CancellationToken token)
     {
-        var socio = await club.AutenticarAsync(login, registro, token);
+        var socio = await acceso.AutenticarAsync(login, registro, token);
         return socio.HasValue ? Ok(jwt.Emitir(socio.Value)) : Problem(statusCode: 401, title: "Credenciales inválidas.");
     }
 }

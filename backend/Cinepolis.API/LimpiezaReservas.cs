@@ -1,7 +1,9 @@
-﻿using Cinepolis.Application;
+using Cinepolis.Domain;
+using Cinepolis.Application;
 
 namespace Cinepolis.API;
 
+/// <summary>Procesa las reservas vencidas y publica las butacas liberadas.</summary>
 public sealed class LimpiezaReservas(IServiceScopeFactory scopes, INotificadorSala notificador,
     ILogger<LimpiezaReservas> logger) : BackgroundService
 {
@@ -13,7 +15,7 @@ public sealed class LimpiezaReservas(IServiceScopeFactory scopes, INotificadorSa
             try
             {
                 using var scope = scopes.CreateScope();
-                var repo = scope.ServiceProvider.GetRequiredService<IAsientoRepository>();
+                var repo = scope.ServiceProvider.GetRequiredService<IReservasVencidasRepository>();
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     var cambios = await repo.LiberarVencidosAsync(stoppingToken);

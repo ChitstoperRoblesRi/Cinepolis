@@ -1,5 +1,6 @@
 namespace Cinepolis.Domain;
 
+/// <summary>Valores admitidos para promocion tipo promocion.</summary>
 public enum PromocionTipoPromocion
 {
     Descuento,
@@ -9,8 +10,10 @@ public enum PromocionTipoPromocion
     PrecioEspecial
 }
 
+/// <summary>Convierte entre el valor tipado y su representación en PostgreSQL.</summary>
 public static class ValoresPromocionTipoPromocion
 {
+    /// <summary>Interpreta el valor textual almacenado por PostgreSQL.</summary>
     public static PromocionTipoPromocion DesdeTexto(string valor) => valor switch
     {
         "descuento" => PromocionTipoPromocion.Descuento,
@@ -21,6 +24,7 @@ public static class ValoresPromocionTipoPromocion
         _ => throw new ArgumentOutOfRangeException(nameof(valor), valor, null)
     };
 
+    /// <summary>Devuelve la representación persistida del valor de dominio.</summary>
     public static string TextoSql(this PromocionTipoPromocion valor) => valor switch
     {
         PromocionTipoPromocion.Descuento => "descuento",
