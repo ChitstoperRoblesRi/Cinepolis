@@ -1,23 +1,13 @@
+import { agruparSesiones } from '../services/sesiones'
 import { useEffect, useRef } from 'react'
 import { Film, X } from 'lucide-react'
 import { useCinepolis } from '../context/CinepolisContext'
-import type { FormatoDto } from '../types/cinepolis'
 import { navegar } from '../services/navigation'
 
-export function sesiones(formatos: FormatoDto[]) {
-  return formatos.flatMap(formato => formato.horarios.flatMap(h => h.funciones.map(funcion => ({
-    formato: formato.nombreFormato, tipo: formato.tipoSala, fecha: h.fecha, hora: h.horaInicio, funcion
-  }))))
-}
-export type Sesion = ReturnType<typeof sesiones>[number]
+import type { Sesion } from '../services/sesiones'
 export function Horarios({ items, pelicula }: { items: Sesion[]; pelicula: { titulo: string; posterUrl: string | null } }) {
   const { carrito } = useCinepolis()
-  const grupos = new Map<string, Sesion[]>()
-  for (const s of items) {
-    const key = [s.funcion.nombreComercial, s.tipo, s.formato, s.funcion.idioma, s.fecha].join(' · ')
-    if (!grupos.has(key)) grupos.set(key, [])
-    grupos.get(key)!.push(s)
-  }
+  const grupos = agruparSesiones(items)
   return <div className="horarios">{[...grupos].map(([key, grupo]) => <div key={key}>
     <p>{[...new Set([grupo[0].tipo, grupo[0].formato])].join(' / ')} · {grupo[0].funcion.idioma} · {grupo[0].fecha}</p>
     <div className="pills">{grupo.map(s => <button key={s.funcion.funcionId} title={s.funcion.nombreSala}

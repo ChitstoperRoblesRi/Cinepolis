@@ -1,3 +1,4 @@
+import type { ProblemDetails } from '../types/servicios'
 import type * as C from '../types/cinepolis'
 
 const base = import.meta.env.VITE_API_URL.replace(/\/$/, '')
@@ -7,8 +8,10 @@ export function readSession(): C.RespuestaLogin | null {
   const raw = sessionStorage.getItem(sessionKey)
   if (raw) {
     try {
-      const data = JSON.parse(raw)
-      if (typeof data?.accessToken === 'string' && Date.parse(data.expiraUtc) > Date.now()) return data
+      const data: unknown = JSON.parse(raw)
+      if (data && typeof data === 'object' && 'accessToken' in data && typeof data.accessToken === 'string' &&
+          'expiraUtc' in data && typeof data.expiraUtc === 'string' && Date.parse(data.expiraUtc) > Date.now())
+        return { accessToken: data.accessToken, expiraUtc: data.expiraUtc }
     } catch { /* El almacenamiento puede contener una sesión anterior. */ }
     saveSession(null)
   }
@@ -19,12 +22,6 @@ export function saveSession(session: C.RespuestaLogin | null) {
   if (session) sessionStorage.setItem(sessionKey, JSON.stringify(session))
   else sessionStorage.removeItem(sessionKey)
   window.dispatchEvent(new Event('cinepolis:sesion'))
-}
-
-interface ProblemDetails {
-  title?: string
-  detail?: string
-  errors?: Record<string, string[]>
 }
 
 export class ApiError extends Error {

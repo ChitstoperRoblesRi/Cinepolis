@@ -1,25 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useDetallePelicula } from '../hooks/useDetallePelicula'
 import { Clock3, Play } from 'lucide-react'
-import { api } from '../services/api'
-import type { ComplejoDto, DetallePeliculaDto } from '../types/cinepolis'
-import { Horarios, Poster, sesiones, TrailerModal } from '../components/Pelicula'
-import { useCinepolis } from '../context/CinepolisContext'
+import type { ComplejoDto } from '../types/cinepolis'
+import { Horarios, Poster, TrailerModal } from '../components/Pelicula'
 
 interface Props { id: number; complejos: ComplejoDto[]; banner?: string | null }
 
 export function PeliculaDetallePage({ id, complejos, banner }: Props) {
-  const [p, setPelicula] = useState<DetallePeliculaDto | null>(null)
-  const [error, setError] = useState('')
-  const [trailer, setTrailer] = useState(false)
-  const { complejo, elegirComplejo } = useCinepolis()
-  useEffect(() => {
-    const abort = new AbortController()
-    api.pelicula(id, abort.signal).then(setPelicula).catch(e => { if (!abort.signal.aborted) setError(e.message) })
-    return () => abort.abort()
-  }, [id])
+  const { p, error, trailer, setTrailer, complejo, elegirComplejo, funciones, fondo } = useDetallePelicula(id, banner)
   if (!p) return <section className="wrap cartel"><p role="status">{error || 'Cargando película…'}</p><a href="/cartelera">Volver a cartelera</a></section>
-  const funciones = sesiones(p.formatos).filter(s => s.funcion.complejoId === complejo?.complejoId)
-  const fondo = banner || p.posterUrl
   return <>
     <section className="hero ficha-hero">
       {fondo && <img src={fondo} alt=""/>}

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useHistorial } from '../hooks/useHistorial'
+import { useState } from 'react'
 import { Crown, RotateCw, Ticket } from 'lucide-react'
 import { useCinepolis } from '../context/CinepolisContext'
-import { api } from '../services/api'
-import type { CompraClub, PerfilClub } from '../types/cinepolis'
+import type { PerfilClub } from '../types/cinepolis'
 import { AuthPage } from './AuthPage'
 import { moneda } from './compra/PasoBoletos'
 
@@ -25,18 +25,7 @@ function Tarjeta({ perfil: p }: { perfil: PerfilClub }) {
 }
 
 function Historial() {
-  const [datos,setDatos] = useState<CompraClub[]>()
-  const [activas,setActivas] = useState(false)
-  const [error,setError] = useState('')
-  const [intento,setIntento] = useState(0)
-  useEffect(() => {
-    const abort = new AbortController()
-    setError('')
-    api.comprasClub(abort.signal).then(result => { if (!abort.signal.aborted) setDatos(result) })
-      .catch(e => { if (!abort.signal.aborted) setError(e.message) })
-    return () => abort.abort()
-  },[intento])
-  const filas = datos?.filter(c => !activas || c.activa)
+  const { datos, activas, setActivas, error, setIntento, filas } = useHistorial()
   return <section className="historial-club"><div className="pills"><button aria-pressed={!activas} onClick={() => setActivas(false)}>Mis compras</button>
     <button aria-pressed={activas} onClick={() => setActivas(true)}>Boletos activos</button></div>
     {error ? <p role="alert">{error} <button onClick={() => setIntento(i => i+1)}>Reintentar</button></p> : !datos && <p role="status">Cargando historial…</p>}

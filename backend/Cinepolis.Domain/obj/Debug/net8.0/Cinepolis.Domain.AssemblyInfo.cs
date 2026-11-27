@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Cinepolis.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04ea83aff1737ea131d880a1213a1c80de824c03")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+444c647bcbc666f32e57bd8b0cdb2f65d8835116")]
 [assembly: System.Reflection.AssemblyProductAttribute("Cinepolis.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Cinepolis.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
