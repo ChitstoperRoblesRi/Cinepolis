@@ -1,0 +1,17 @@
+.layout { margin-top: 28px; display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 28px; align-items: start; }
+.filters, .movie { border: 1px solid var(--line); border-radius: var(--radius-l); background: var(--glass-strong); box-shadow: var(--shadow-card); }
+.filters { display: grid; gap: 18px; padding: 18px; }
+.filters legend { color: var(--blue); font: 700 12px var(--font-title); text-transform: uppercase; letter-spacing: .08em; }
+.movies { display: grid; gap: 22px; }
+.movie { display: grid; grid-template-columns: 148px minmax(0, 1fr); align-items: start; gap: 24px; padding: 22px; }
+.movie:hover { box-shadow: var(--shadow-hover); }
+.movie img { border-radius: var(--radius-m); }
+.info { min-width: 0; display: grid; gap: 8px; justify-items: start; }
+.info h2 { margin: 0; }
+@media (max-width: 850px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .filters { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+}
+@media (max-width: 640px) {
+  .movie { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 14px; }
+}

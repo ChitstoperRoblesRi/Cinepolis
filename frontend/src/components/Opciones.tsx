@@ -1,3 +1,4 @@
+import QuantityStepper from './visual/QuantityStepper'
 ﻿import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useConfigurador } from '../hooks/useConfigurador'
@@ -37,10 +38,7 @@ export function Opciones({ p, combo, agregar, cerrar, aviso, inicial }: {
             <strong>{o.nombre}</strong>{etiquetas[i] && <small>{etiquetas[i]}</small>}
           </button>)}</div>
       </details>)}
-      <div className="unidades-combo"><strong>Cantidad</strong><div className="contador">
-        <button aria-label="Quitar una unidad" disabled={unidades <= 1} onClick={() => setUnidades(unidades - 1)}>−</button>
-        <output>{unidades}</output><button aria-label="Añadir una unidad" disabled={unidades >= 999} onClick={() => setUnidades(unidades + 1)}>+</button>
-      </div></div>
+      <div className="unidades-combo"><strong>Cantidad</strong><QuantityStepper label={p.nombreProducto} min={1} max={999} value={unidades} onChange={setUnidades}/></div>
     </div>
     <div className="configurador-pie">{aviso && <p role="alert">{aviso}</p>}
       <button disabled={!valido} onClick={() => agregar(ids, unidades)}>{inicial ? 'Guardar' : 'Agregar'} • {moneda(total)}</button>

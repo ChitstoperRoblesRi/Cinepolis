@@ -1,0 +1,27 @@
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/montserrat/wght.css';
+
+body { background: var(--grad-page); color: var(--ink); font-family: var(--font-body); }
+h1, h2, h3 { font-family: var(--font-title); }
+.cabecera, #root main + footer { background: var(--grad-dark); }
+.top nav a[aria-current=page] { border-color: var(--accent); }
+.hero .eyebrow { color: var(--accent); }
+.cta, .pedido footer .cta, .configurador-pie button {
+  background: var(--grad-action); color: var(--navy-950); border-radius: var(--radius-pill);
+  justify-content: center;
+}
+.cards article, .compra .paso, .compra .pedido {
+  border: 1px solid var(--line); border-radius: var(--radius-l); box-shadow: var(--shadow-card);
+}
+.ficha-cabecera img { max-height: 360px; object-fit: contain; }
+.compra .auditorio { background: var(--grad-dark); border-radius: var(--radius-l); }
+.auditorio .letra-fila { color: #afc7e8; }
+.auditorio .pantalla {
+  color: #cfe3ff; border-color: var(--accent); letter-spacing: .35em;
+  box-shadow: 0 -8px 22px rgba(56,189,248,.35);
+}
+.butaca[data-estado=seleccionado] { background: var(--grad-action); color: var(--navy-950); }
+.pedido > header, .configurador-titulo { background: var(--grad-dark); color: white; }
+.opciones-combo button[aria-pressed=true] { background: var(--accent-soft); border-color: var(--blue); color: var(--navy-900); }
+.configurador-banner { background: var(--grad-blue); }
+

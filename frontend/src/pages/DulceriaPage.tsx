@@ -1,6 +1,5 @@
-import { Popcorn, Plus } from 'lucide-react'
+import ProductGrid from '../components/visual/ProductGrid'
 import { useCinepolis } from '../context/CinepolisContext'
-import { moneda } from '../services/moneda'
 import { esCombo } from '../services/dulceria'
 import { useCatalogo } from '../hooks/useCatalogo'
 import { Opciones } from '../components/Opciones'
@@ -14,11 +13,11 @@ export function CatalogoDulceria({ cine }: { cine?: number }) {
   if (!datos.length) return <p>No hay productos disponibles en este cine.</p>
   return <><nav className="pills categorias" aria-label="Categorías de dulcería">{datos.map(g =>
     <button key={g.categoriaId} aria-pressed={categoria === g.categoriaId} onClick={() => setCategoria(g.categoriaId)}>{g.nombreCategoria}</button>)}</nav>
-    <div className="dulces-grid">{grupo && [...grupo.combos,...grupo.productos].map(p => <article key={p.productoId}>
-      {p.imagenUrl ? <img alt="" loading="lazy" src={p.imagenUrl}/> : <Popcorn size={36}/>}
-      <h3>{p.nombreProducto}</h3><p>{p.descripcion}</p><strong>{moneda(p.precio ?? 0)}</strong>
-      <button className="back" onClick={() => { setAviso(''); if (p.reglas.length) setProducto(p); else agregar(p, []) }}><Plus size={16}/> {p.reglas.length ? 'Personalizar' : 'Añadir'}</button>
-    </article>)}</div>
+    {grupo && <ProductGrid productos={[...grupo.combos, ...grupo.productos]} elegir={p => {
+      setAviso('')
+      if (p.reglas.length) setProducto(p)
+      else agregar(p, [])
+    }}/> }
     <p role="status">{aviso}</p>{producto && grupo && <Opciones p={producto} combo={esCombo(producto, grupo.nombreCategoria)}
       aviso={aviso} cerrar={() => setProducto(null)} agregar={(ids, unidades) => agregar(producto, ids, unidades)}/>}</>
 }

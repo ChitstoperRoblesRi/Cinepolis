@@ -27,5 +27,5 @@ export function CompraLayout({ ruta }: { ruta: string }) {
       c.funcion && !c.mapa && <p role="status">Cargando tarifas y sala…</p>}
       {directo && <a href="/dulceria">Volver a dulcería</a>}
       {paso <= 1 ? <PasoAsientos key={c.funcion?.funcionId}/> : paso === 2 ? <PasoDulceria/> : <PasoPago boletos={subtotal}/>}</div>
-      <ResumenPedidoSidebar ruta={ruta} modoSoloLectura={paso === 3}/></div></main>
+      <ResumenPedidoSidebar ruta={ruta} modoSoloLectura={paso !== 2 || ruta === '/compra/pago'}/></div></main>
 }
