@@ -13,3 +13,6 @@ C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Verifi
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Verificacion\Cinepolis.Domain.dll
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\Verificacion\Cinepolis.Domain.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Debug\net8.0\Cinepolis.Domain.sourcelink.json
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\verificacion\Debug\net8.0\Cinepolis.Domain.deps.json
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\verificacion\Debug\net8.0\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\bin\verificacion\Debug\net8.0\Cinepolis.Domain.pdb

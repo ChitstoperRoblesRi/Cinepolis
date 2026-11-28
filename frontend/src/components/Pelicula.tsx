@@ -1,17 +1,18 @@
-import { agruparSesiones } from '../services/sesiones'
+import type { FormatoDto } from '../types/cinepolis'
+import { agruparSesiones, sesiones } from '../services/sesiones'
 import { useEffect, useRef } from 'react'
 import { Film, X } from 'lucide-react'
 import { useCinepolis } from '../context/CinepolisContext'
 import { navegar } from '../services/navigation'
 
 import type { Sesion } from '../services/sesiones'
-export function Horarios({ items, pelicula }: { items: Sesion[]; pelicula: { titulo: string; posterUrl: string | null } }) {
+export function Horarios({ items, pelicula }: { items: Sesion[]; pelicula: { formatos: FormatoDto[]; titulo: string; posterUrl: string | null } }) {
   const { carrito } = useCinepolis()
   const grupos = agruparSesiones(items)
   return <div className="horarios">{[...grupos].map(([key, grupo]) => <div key={key}>
     <p>{[...new Set([grupo[0].tipo, grupo[0].formato])].join(' / ')} · {grupo[0].funcion.idioma} · {grupo[0].fecha}</p>
     <div className="pills">{grupo.map(s => <button key={s.funcion.funcionId} title={s.funcion.nombreSala}
-      aria-label={s.hora.slice(0,5) + ', ' + s.funcion.nombreSala} onClick={() => { carrito.elegirFuncion(s.funcion, { titulo: pelicula.titulo, posterUrl: pelicula.posterUrl, fecha: s.fecha, hora: s.hora }); navegar('/compra/boletos') }}>{s.hora.slice(0,5)}</button>)}</div>
+      aria-label={s.hora.slice(0,5) + ', ' + s.funcion.nombreSala} onClick={() => { carrito.elegirFuncion(s.funcion, { horarios: sesiones(pelicula.formatos).filter(h => h.funcion.complejoId === s.funcion.complejoId && h.fecha === s.fecha).sort((a,b) => a.hora.localeCompare(b.hora)), titulo: pelicula.titulo, formato: s.formato, posterUrl: pelicula.posterUrl, fecha: s.fecha, hora: s.hora }); navegar('/compra/asientos') }}>{s.hora.slice(0,5)}</button>)}</div>
   </div>)}</div>
 }
 

@@ -15,3 +15,4 @@ C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\ob
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\refint\Cinepolis.Infrastructure.dll
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\ref\Cinepolis.Infrastructure.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Infrastructure\obj\Release\net8.0\Cinepolis.Infrastructure.sourcelink.json

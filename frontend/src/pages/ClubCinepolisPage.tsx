@@ -4,7 +4,7 @@ import { Crown, RotateCw, Ticket } from 'lucide-react'
 import { useCinepolis } from '../context/CinepolisContext'
 import type { PerfilClub } from '../types/cinepolis'
 import { AuthPage } from './AuthPage'
-import { moneda } from './compra/PasoBoletos'
+import { moneda } from '../services/moneda'
 
 function Tarjeta({ perfil: p }: { perfil: PerfilClub }) {
   const [reverso,setReverso] = useState(false)

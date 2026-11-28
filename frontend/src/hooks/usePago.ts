@@ -5,7 +5,7 @@ import { recordarInvitado } from '../services/folios'
 
 /** Estado y acciones de PasoPago. */
 export function usePago(boletos: number) {
-  const { carrito: c, perfil, sesion, guardarConfirmacion } = useCinepolis()
+  const { carrito: c, complejo, perfil, sesion, guardarConfirmacion } = useCinepolis()
   const total = Number((boletos + c.dulceria + c.cargo).toFixed(2))
   const [puntos,setPuntos] = useState(false)
   const [error,setError] = useState('')
@@ -27,7 +27,7 @@ export function usePago(boletos: number) {
     setError(''); setOcupado(true)
     try {
       const digital = await c.comprar({formaPago:canje ? 'Puntos' : 'Tarjeta', nombre:campo('nombre'), correo:campo('correo'),
-        tarjetaClub:tarjetaClub || undefined,totalEsperado:total})
+        tarjetaClub:tarjetaClub || undefined,totalEsperado:total}, complejo?.complejoId)
       guardarConfirmacion(digital)
       const folio = digital.folio
       if (!sesion) recordarInvitado(folio)

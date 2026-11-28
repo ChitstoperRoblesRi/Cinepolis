@@ -57,3 +57,18 @@
 
 .letra-fila { text-align: center; font-size: .85rem; color: #516078; }
 
+.pedido{display:flex;flex-direction:column;max-height:min(48rem,calc(100dvh - 2rem));padding:0;overflow:hidden}
+.pedido>header{background:#081e42;color:white;padding:1rem 1.25rem}
+.pedido-cuerpo{min-height:0;overflow-y:auto;padding:1.25rem;background:white}
+.pedido-linea{padding:.8rem 0;border-top:1px solid #dbe2ea}
+.pedido-linea ul{list-style:disc;padding-left:1.25rem;margin:.5rem 0}
+.pedido-linea button{color:#004c92;text-decoration:underline;margin-right:.8rem}
+.pedido>footer .importe{color:#0B1E46;font-weight:700}
+.pedido>footer .pedido-total{color:#1E62EC;font-weight:800;font-size:1.5rem;line-height:2rem}
+.pedido>footer{color:#0B1E46;background:#f1f3f6;padding:1rem 1.25rem}
+.pedido>footer .cta{width:100%;margin-top:.75rem}
+
+.horarios-sala { display:flex; overflow-x:auto; gap:.5rem; margin-block:1rem }
+.horarios-sala button { flex:none; display:grid; gap:.25rem; padding:.5rem .75rem; color:#0b1e46; background:white; border:0; border-bottom:3px solid transparent }
+.horarios-sala button[aria-current=time] { color:#1e62ec; border-bottom-color:currentColor }
+.butaca[data-estado=ocupado] { background:#cbd3de; border-color:#7a889b }

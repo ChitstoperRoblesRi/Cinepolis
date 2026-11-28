@@ -21,23 +21,33 @@ public sealed class DulceriaRepository(IDbConnectionFactory factory, Normalizado
         DbTransaction? tx, CancellationToken token, int? catalogoId = null)
     {
         const string sql = """
-            WITH bebidas AS (
+            WITH individuales AS (
                 SELECT dc.catalogo_id, dc.precio_actual, b.api_id, b.producto_id
                 FROM public.detalle_catalogo dc JOIN public.producto_dulceria b USING (producto_id)
                 JOIN public.catalogo_complejo cc USING (catalogo_id)
-                WHERE b.nombre_producto = ANY(@BebidasIncluidas) AND (@ComplejoId::int IS NULL OR cc.complejo_id = @ComplejoId)
-            ), precios_bebida AS (
+                JOIN public.categoria_dulceria categoria USING (categoria_id)
+                WHERE dc.disponibilidad AND categoria.nombre_categoria NOT IN (@CategoriaCombos, @Compartir)
+                  AND b.nombre_producto NOT ILIKE @NombreCombo AND b.nombre_producto NOT LIKE @ProductosJuntos
+                  AND (@ComplejoId::int IS NULL OR cc.complejo_id = @ComplejoId)
+            ), precios_individuales AS (
                 SELECT catalogo_id, sku, min(precio_actual) AS base_incluida FROM (
-                    SELECT catalogo_id, api_id AS sku, precio_actual FROM bebidas
+                    SELECT catalogo_id, api_id AS sku, precio_actual FROM individuales
                     UNION ALL
                     -- El catálogo regional 18795 usa 18791 para el litro incluido como SKU 275 en el combo.
-                    SELECT catalogo_id, @SkuAguaLitro, precio_actual FROM bebidas WHERE api_id = @SkuAguaRegional
+                    SELECT catalogo_id, @SkuAguaLitro, precio_actual FROM individuales WHERE api_id = @SkuAguaRegional
                     UNION ALL
-                    SELECT b.catalogo_id, o.api_id_opcion, b.precio_actual FROM bebidas b
+                    SELECT i.catalogo_id, sabor.sku, i.precio_actual
+                    FROM individuales i CROSS JOIN unnest(@SaboresIceeGrande) AS sabor(sku)
+                    WHERE i.api_id = @SkuIcee
+                    UNION ALL
+                    SELECT b.catalogo_id, o.api_id_opcion,
+                        CASE WHEN b.precio_actual > 0 THEN b.precio_actual ELSE m.precio_extra END
+                    FROM individuales b
                     JOIN public.modificador_regla r USING (producto_id)
                     JOIN public.modificador_opcion o USING (regla_id)
+                    JOIN public.disponibilidad_modificador m ON m.catalogo_id = b.catalogo_id AND m.opcion_id = o.opcion_id AND m.activo
                     WHERE r.tipo_modificador = ANY(@TiposVariante)
-                ) variantes GROUP BY catalogo_id, sku
+                ) variantes WHERE precio_actual > 0 GROUP BY catalogo_id, sku
             )
             SELECT p.producto_id, p.categoria_id, p.nombre_producto, p.estructura, p.descripcion, p.imagen_url,
                 cat.catalogo_id, cat.precio_actual AS precio, coalesce(reglas.lista, '[]')::text AS reglas, p.api_id AS sku_producto, tipo.es_combo
@@ -57,15 +67,13 @@ public sealed class DulceriaRepository(IDbConnectionFactory factory, Normalizado
             LEFT JOIN LATERAL (
                 WITH catalogadas AS (
                     SELECT r.*, o.opcion_id, o.api_id_opcion, o.nombre_opcion, o.es_default, m.activo,
-                        d.precio_actual, m.precio_extra, bebida.base_incluida
+                        d.precio_actual, m.precio_extra, individual.base_incluida
                     FROM public.modificador_regla r
                     JOIN public.modificador_opcion o USING (regla_id)
                     JOIN public.disponibilidad_modificador m ON m.opcion_id = o.opcion_id
                     JOIN public.detalle_catalogo d ON d.catalogo_id = m.catalogo_id AND d.producto_id = r.producto_id
-                    LEFT JOIN precios_bebida bebida ON bebida.catalogo_id = m.catalogo_id AND bebida.sku = o.api_id_opcion
-                        AND (categoria.nombre_categoria = @CategoriaCombos OR (tipo.es_combo AND o.api_id_opcion = @SkuAguaLitro
-                            AND r.tipo_modificador = @TipoSabor AND lower(r.grupo_titulo) LIKE ANY(@GruposRefresco))) AND r.min_items > 0
-                        AND r.tipo_modificador = ANY(@TiposVariante)
+                    LEFT JOIN precios_individuales individual ON individual.catalogo_id = m.catalogo_id
+                        AND individual.sku = o.api_id_opcion AND tipo.es_combo AND r.min_items > 0
                     WHERE r.producto_id = p.producto_id AND m.catalogo_id = coalesce(cat.catalogo_id, (
                         SELECT min(d.catalogo_id) FROM public.detalle_catalogo d
                         WHERE d.producto_id = p.producto_id AND d.disponibilidad
@@ -85,8 +93,7 @@ public sealed class DulceriaRepository(IDbConnectionFactory factory, Normalizado
                             AND (p.api_id <> ALL(@CombosDosBebidas) OR c.nombre NOT LIKE ALL(@GruposDosBebidas)
                                 OR u.nombre = c.nombre || ' 1')
                         -- En los maxicombos, el encabezado es un alias de la primera unidad de esa posición.
-                        HAVING count(*) = 1 OR (tipo.es_maxicombo AND
-                            (c.nombre LIKE @GrupoPalomitas OR c.nombre LIKE ANY(@GruposRefresco)))
+                        HAVING count(*) = 1 OR tipo.es_maxicombo
                     ) unidad ON true
                 ), opciones AS (
                     SELECT c.*, CASE WHEN n.nombre_unico LIKE @GrupoPalomitas OR lower(p.nombre_producto) = @Palomitas
@@ -103,7 +110,7 @@ public sealed class DulceriaRepository(IDbConnectionFactory factory, Normalizado
                     SELECT grupo_id, bool_or(min_items > 0) AS obligatoria,
                         max(precio_extra) FILTER (WHERE api_id_opcion = p.api_id) AS importe_sku_principal,
                         max(precio_extra) FILTER (WHERE lower(trim(nombre_opcion)) = @ParaLlevar) AS importe_llevar,
-                        min(precio_extra) FILTER (WHERE es_default) AS importe_incluido,
+                        min(precio_extra) FILTER (WHERE activo AND es_default) AS importe_incluido,
                         min(precio_extra) FILTER (WHERE activo OR api_id_opcion = p.api_id) AS importe_base
                     FROM unicas GROUP BY grupo_id
                 ), clasificadas AS (
@@ -128,18 +135,15 @@ public sealed class DulceriaRepository(IDbConnectionFactory factory, Normalizado
                                 AND lower(trim(nombre_opcion)) = @Palomitas THEN @Jumbo
                             ELSE nombre_opcion END,
                         'Importe', jsonb_build_object(
-                            'Extra', precio_extra, 'PrecioCatalogo', precio_actual, 'BaseBebida', base_incluida,
+                            'Extra', precio_extra, 'PrecioCatalogo', precio_actual, 'PrecioIndividual', base_incluida,
                             'SkuPrincipal', importe_sku_principal, 'ParaLlevar', importe_llevar,
                             'Incluido', importe_incluido, 'Minimo', importe_base, 'EleccionUnica', eleccion_unica,
-                            'AguaEnCombo', tipo.es_combo AND api_id_opcion = @SkuAguaLitro AND tipo_modificador = @TipoSabor
-                                AND coalesce(lower(grupo_titulo) LIKE ANY(@GruposRefresco), false),
                             'TamanoNachos', p.nombre_producto = @Nachos AND tipo_modificador = @TipoTamano,
                             'TamanoPalomitasCombo', p.estructura = @Combo AND lower(p.nombre_producto) <> @Palomitas
                                 AND bloque_palomitas IS NOT NULL AND tipo_modificador = @TipoTamano,
-                            'NombreOrigen', nombre_opcion, 'OpcionIncluidaCombo', categoria.nombre_categoria = @CategoriaCombos
-                                AND eleccion_unica AND bloque_palomitas IS NULL,
+                            'NombreOrigen', nombre_opcion, 'OpcionIncluidaCombo', tipo.es_combo AND min_items > 0,
                             'VarianteHelado', eleccion_unica AND unica_obligatoria AND categoria.nombre_categoria = @CategoriaHelados),
-                        'PrecioVariante', eleccion_unica AND unica_obligatoria
+                        'PrecioVariante', NOT tipo.es_combo AND eleccion_unica AND unica_obligatoria
                     ) ORDER BY opcion_id) FILTER (WHERE activo), '[]') AS opciones
                     FROM clasificadas GROUP BY grupo_id
                 )
@@ -169,9 +173,9 @@ public sealed class DulceriaRepository(IDbConnectionFactory factory, Normalizado
             CombosDosBebidas = new[] { "17497", "17509", "14179", "17500", "16454", "17504" },
             CategoriaHelados = "Helados", TipoTamano = "size", SkuAguaLitro = "275", SkuAguaRegional = "18795",
             GrupoPalomitas = "%palomitas%",
+            SkuIcee = "18972", SaboresIceeGrande = new[] { "17866", "19235", "24099" },
             Palomitas = "palomitas", Combo = "combo", Jumbo = "Jumbo", CategoriaCombos = "Combos",
             ParaLlevar = "para llevar",
-            BebidasIncluidas = new[] { "Agua Embotellada", "Refresco", "ICEE®" },
             CombosCiel = new[] { "14511", "26165" }, GrupoAgua = "%agua%" };
         var filas = await db.QueryAsync<Fila>(new CommandDefinition(sql, parametros, tx, cancellationToken: token));
         return filas.Select(NormalizarFila).ToArray();

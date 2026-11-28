@@ -1,9 +1,9 @@
 namespace Cinepolis.Domain;
 
 /// <summary>Importes y referencias del catálogo regional para una opción de personalización.</summary>
-public sealed record PrecioOpcionCatalogo(decimal Extra, decimal? PrecioCatalogo, decimal? BaseBebida,
+public sealed record PrecioOpcionCatalogo(decimal Extra, decimal? PrecioCatalogo, decimal? PrecioIndividual,
     decimal? SkuPrincipal, decimal? ParaLlevar, decimal? Incluido, decimal? Minimo, bool EleccionUnica,
-    bool AguaEnCombo, bool TamanoNachos, bool TamanoPalomitasCombo, string NombreOrigen, bool OpcionIncluidaCombo,
+    bool TamanoNachos, bool TamanoPalomitasCombo, string NombreOrigen, bool OpcionIncluidaCombo,
     bool VarianteHelado);
 
 /// <summary>Diferenciales de un grupo seleccionado sobre el precio de portada o variante.</summary>
@@ -27,7 +27,6 @@ public sealed class EstrategiaPrecioProductoBase : IPrecioDulceriaStrategy
     public decimal Ajustar(PrecioOpcionCatalogo o)
     {
         if (o.TamanoNachos && o.SkuPrincipal.HasValue) return o.Extra - o.SkuPrincipal.Value;
-        if (o.Extra >= o.BaseBebida) return o.Extra - o.BaseBebida!.Value;
         if (o.EleccionUnica && o.Extra >= o.PrecioCatalogo) return o.Extra - o.PrecioCatalogo!.Value;
         if (o.VarianteHelado && o.Minimo.HasValue) return o.Extra - o.Minimo.Value;
         return o.Extra;
@@ -56,15 +55,20 @@ public sealed class EstrategiaPrecioCombo(EstrategiaPrecioProductoBase precioBas
     /// <summary>Calcula los ajustes sobre la portada Para llevar y las bebidas incluidas.</summary>
     public decimal Ajustar(PrecioOpcionCatalogo o)
     {
-        if (o.AguaEnCombo) return o.Extra >= o.BaseBebida ? o.Extra - o.BaseBebida!.Value : o.Extra;
         if (o.TamanoPalomitasCombo && o.ParaLlevar is decimal portada)
         {
             var nombre = o.NombreOrigen.Trim().ToLowerInvariant();
             if (nombre == "para llevar") return 0m;
             if (nombre is "jumbo" or "palomitas") return -Math.Abs(o.Extra - portada);
         }
-        if (o.OpcionIncluidaCombo && o.Minimo > 0 && o.Incluido > 0)
-            return Math.Max(0m, o.Extra - o.Incluido.Value);
+        if (o.OpcionIncluidaCombo)
+        {
+            // Un grupo puede mezclar suplementos ya netos con precios completos de SKU.
+            var incluido = o.Incluido ?? o.Minimo ?? 0m;
+            if (incluido == 0m && o.PrecioIndividual is decimal individual && o.Extra >= individual)
+                incluido = individual;
+            return Math.Max(0m, o.Extra - incluido);
+        }
         return precioBase.Ajustar(o);
     }
 

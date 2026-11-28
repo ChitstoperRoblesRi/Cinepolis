@@ -57,7 +57,7 @@ export interface DetallePeliculaDto {
 }
 
 export interface Opcion { opcionId: number; nombre: string; extra: number; precioVariante: number | null }
-export interface Regla { reglaId: number; titulo: string; grupoTitulo: string | null; tipoModificador: string; bloquePalomitas: number | null; min: number; max: number; opciones: Opcion[] }
+export interface Regla { reglaId: number; titulo: string; grupoTitulo: string | null; tipoModificador: string; bloquePalomitas: number | null; saboresPalomitas?: boolean; maximosPorTamano?: Record<number, number> | null; min: number; max: number; opciones: Opcion[] }
 export interface ProductoDto {
   catalogoId: number | null
   precio: number | null
@@ -175,7 +175,8 @@ export interface ProductoCompra {
 }
 
 export interface LineaDulceria extends ProductoCompra {
-  clave: string; nombre: string; precio: number; sabores: string[]; complejoId: number
+  opciones: number[]
+  clave: string; nombre: string; precio: number; producto: ProductoDto; combo: boolean; complejoId: number
 }
 
 export interface PagoCompra {
@@ -187,8 +188,9 @@ export interface PagoCompra {
 }
 
 export interface Checkout {
-  funcionId: number
-  tokenReserva: string
+  funcionId: number | null
+  complejoId?: number
+  tokenReserva: string | null
   asientos: BoletoCompra[]
   productos: ProductoCompra[]
   pago: PagoCompra

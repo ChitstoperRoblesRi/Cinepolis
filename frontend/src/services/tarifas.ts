@@ -1,13 +1,14 @@
-import { claveTarifa, type useCheckoutFacade } from '../hooks/useCheckoutFacade'
+import type { TarifaFuncion } from '../types/cinepolis'
 
-/** Agrupa tarifas equivalentes preservando las zonas aplicables al boleto. */
-export function presentarTarifas(c: ReturnType<typeof useCheckoutFacade>) {
-  const tarifas = [...new Map(c.mapa?.tarifas.map(t => [claveTarifa(t), t])).values()]
-  return tarifas.map(t => {
-    const clave = claveTarifa(t)
-    const cantidad = c.cantidades[clave] ?? 0
-    const zonas = c.mapa!.tarifas.filter(a => claveTarifa(a) === clave).map(a => a.areaCategoryCode)
-    const mostrarZona = tarifas.some(a => a.tipoBoletoId === t.tipoBoletoId && a.precio !== t.precio)
-    return { t, clave, cantidad, zonas, mostrarZona }
-  })
+export class ErrorSeleccionButaca extends Error {}
+
+export const limiteBoletos = 10
+
+export function tarifaGeneral(tarifas: TarifaFuncion[], area: string) {
+  const zona = tarifas.filter(t => t.areaCategoryCode === area)
+  const prioridades = [/^admisión general$/i, /^adulto$/i, /^(admisión general|general)\b/i, /^evento especial$/i]
+  for (const patron of prioridades) {
+    const tarifa = zona.find(t => patron.test(t.nombre.trim()))
+    if (tarifa) return tarifa
+  }
 }

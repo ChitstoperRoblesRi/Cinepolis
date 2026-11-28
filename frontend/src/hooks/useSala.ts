@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
+import { ErrorSeleccionButaca } from '../services/tarifas'
 import { matrizSala } from '../services/mapaSala'
 import { useRef, useState } from 'react'
-import { claveTarifa, useCinepolis } from '../context/CinepolisContext'
+import { useCinepolis } from '../context/CinepolisContext'
 import type { AsientoLectura } from '../types/cinepolis'
-/** Serializa cambios de reserva y resuelve la tarifa por zona física. */
+/** Serializa los clics sobre el mapa y presenta el resultado de cada reserva. */
 export function useSala() {
   const { carrito: c } = useCinepolis()
   const [mensaje, setMensaje] = useState('')
@@ -22,15 +23,11 @@ export function useSala() {
       if (elegido(a.asientoId)) {
         if (!await c.liberar(a.asientoId)) setMensaje('No se pudo liberar la butaca.')
       } else {
-        const tarifa = mapa?.tarifas.find(t => t.areaCategoryCode === a.areaCategoryCode &&
-          (c.cantidades[claveTarifa(t)] ?? 0) > c.usados(claveTarifa(t)))
-        if (!tarifa) { setMensaje('Elige una butaca de la zona de tus boletos pendientes.'); return }
-        if (!await c.seleccionar({ asientoId: a.asientoId, tipoBoletoId: tarifa.tipoBoletoId }))
+        if (!await c.seleccionar(a.asientoId))
           setMensaje('La butaca ya no está disponible. Elige otra.')
       }
-    } catch { setMensaje('No se pudo confirmar el cambio en la sala.') }
+    } catch (error) { setMensaje(error instanceof ErrorSeleccionButaca ? error.message : 'No se pudo confirmar el cambio en la sala.') }
     finally { procesando.current = false; setOcupado(false) }
   }
-  const completo = c.asientos.length === c.totalBoletos && c.totalBoletos > 0
-  return { c, mapa, mensaje, ocupado, filas, columnas, elegido, completo, pulsar }
+  return { c, mapa, mensaje, ocupado, filas, columnas, elegido, pulsar }
 }

@@ -31,13 +31,13 @@ public sealed class ServicioOrdenes(IOrdenRepository ordenes, IGeneradorQr qr, I
     public async Task<TicketDigital> ComprarAsync(Checkout compra, string conexion, int? socioId, CancellationToken token)
     {
         var digital = await unidad.EjecutarAsync(tx => ConfirmarAsync(tx, compra, conexion, socioId), token);
-        await notificador.PublicarAsync(digital.Ticket);
+        if (digital.Ticket.Boletos.Count > 0) await notificador.PublicarAsync(digital.Ticket);
         return digital;
     }
 
     private async Task<TicketDigital> ConfirmarAsync(ITransaccionOrden tx, Checkout compra, string conexion, int? socioId)
     {
-        var disponibilidad = await tx.TomarReservasAsync(compra, conexion, socioId);
+        var disponibilidad = compra.Asientos.Length == 0 ? new DisponibilidadCompra([], [], []) : await tx.TomarReservasAsync(compra, conexion, socioId);
         var preparacion = builder.Iniciar(compra, disponibilidad.Bloqueados, disponibilidad.Convertidos);
         preparacion.ConBoletos(disponibilidad.Tarifas);
         foreach (var seleccion in await tx.CatalogoAsync(compra))
@@ -72,7 +72,11 @@ public sealed class ServicioOrdenes(IOrdenRepository ordenes, IGeneradorQr qr, I
 public static class ValidadorCheckout
 {
     /// <summary>Exige líneas válidas y una sola aparición de cada asiento.</summary>
-    public static bool LineasValidas(Checkout compra) => compra.Asientos.All(b => b is not null)
+    public static bool ModalidadValida(Checkout compra) => compra.Asientos.Length > 0
+        ? compra.FuncionId > 0 && !string.IsNullOrWhiteSpace(compra.TokenReserva)
+        : compra.FuncionId is null && compra.Productos.Length > 0 && compra.ComplejoId > 0;
+
+    public static bool LineasValidas(Checkout compra) => ModalidadValida(compra) && compra.Asientos.All(b => b is not null)
         && compra.Productos.All(p => p is not null)
         && compra.Asientos.DistinctBy(b => b.AsientoId).Count() == compra.Asientos.Length;
 }

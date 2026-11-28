@@ -1,5 +1,5 @@
 import type { ProductoDto, Regla } from '../types/cinepolis'
-import type { ICalculoItemDulceriaStrategy, IVisualizacionPrecioStrategy } from '../types/servicios'
+import type { ICalculoItemDulceriaStrategy, ICotizadorDulceria, IVisualizacionPrecioStrategy } from '../types/servicios'
 import { moneda } from './moneda'
 
 /** Cada bloque de palomitas cobra una vez su sabor más caro. */
@@ -19,7 +19,7 @@ export const EstrategiaVisualGrupoSecundario: IVisualizacionPrecioStrategy = {
   etiquetas: opciones => opciones.map(o => o.extra > 0 ? '+' + moneda(o.extra) : '')
 }
 export function saboresPalomitas(regla: Regla) {
-  return regla.bloquePalomitas != null && regla.tipoModificador === 'flavor'
+  return regla.saboresPalomitas ?? (regla.bloquePalomitas != null && regla.tipoModificador === 'flavor')
 }
 
 export function precioUnitario(p: ProductoDto, ids: number[]) {
@@ -40,6 +40,10 @@ export function precioUnitario(p: ProductoDto, ids: number[]) {
   }
   return (Math.round(base * 100) + extras) / 100
 }
+
+// El catálogo publica el diferencial neto de cada componente incluido y reserva
+// precioVariante para las presentaciones que sustituyen la portada del producto.
+export const cotizadorDulceria: ICotizadorDulceria = { calcular: precioUnitario }
 
 export function normalizarProducto(p: ProductoDto): ProductoDto {
   const ids = new Set<number>()

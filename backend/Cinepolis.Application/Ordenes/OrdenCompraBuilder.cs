@@ -8,16 +8,19 @@ public sealed record Tarifa(int AsientoId, int TipoBoletoId, decimal Precio, dec
 public sealed record Articulo(int ProductoId, int Cantidad, decimal Precio, int[] Opciones);
 /// <summary>Importes confirmados y folio que se persistirán juntos.</summary>
 public sealed record OrdenCotizada(decimal Cargo, decimal Subtotal, decimal Total, string Folio,
-    IReadOnlyList<Tarifa> Boletos, IReadOnlyList<Articulo> Productos);
+    IReadOnlyList<Tarifa> Boletos, IReadOnlyList<Articulo> Productos)
+{
+    public int? ComplejoId { get; init; }
+}
 
 /// <summary>Valida las etapas de reserva, selección y cotización antes de emitir el folio.</summary>
-public sealed class OrdenCompraBuilder(CalculadoraPrecioDulceriaContext calculadora, IGeneradorQr qr)
+public sealed class OrdenCompraBuilder(ICotizadorDulceria calculadora, IGeneradorQr qr, IValidadorSeleccionDulceria seleccion)
 {
     /// <summary>Exige una reserva propia y vigente por cada asiento solicitado.</summary>
     public Preparacion Iniciar(Checkout compra, IReadOnlyList<int> bloqueados, IReadOnlyList<int> convertidos)
     {
         var ids = compra.Asientos.Select(b => b.AsientoId).ToHashSet();
-        if (ids.Count == 0 || ids.Count != compra.Asientos.Length || !ids.SetEquals(bloqueados) ||
+        if (!ValidadorCheckout.ModalidadValida(compra) || ids.Count != compra.Asientos.Length || !ids.SetEquals(bloqueados) ||
             convertidos.Count != ids.Count || !ids.SetEquals(convertidos))
             throw new ConflictoCompra("Uno o más asientos carecen de una reserva vigente de esta sesión.");
         return new Preparacion(this, compra);
@@ -60,9 +63,9 @@ public sealed class OrdenCompraBuilder(CalculadoraPrecioDulceriaContext calculad
         /// <summary>Emite una orden únicamente después de reunir todas las líneas.</summary>
         public OrdenCotizada Construir()
         {
-            if (boletos.Count == 0 || pendientes.Count != 0)
+            if (boletos.Count != compra.Asientos.Length || pendientes.Count != 0)
                 throw new ConflictoCompra("Faltan líneas para completar la orden.");
-            return Totalizar(boletos, productos.ToArray(), compra.Pago.TotalEsperado);
+            return Totalizar(boletos, productos.ToArray(), compra.Pago.TotalEsperado) with { ComplejoId = compra.FuncionId is null ? compra.ComplejoId : null };
         }
     }
 
@@ -70,23 +73,10 @@ public sealed class OrdenCompraBuilder(CalculadoraPrecioDulceriaContext calculad
     private Articulo Cotizar(ProductoCompra linea, ProductoDto p)
     {
         var ids = linea.Opciones ?? [];
-        var opciones = p.Reglas.SelectMany(r => r.Opciones).Where(o => ids.Contains(o.OpcionId)).ToArray();
-        if (opciones.Length != ids.Length || p.Reglas.Any(r =>
-        {
-            int n = r.Opciones.Count(o => ids.Contains(o.OpcionId));
-            var maximo = r.Max;
-            if (r.BloquePalomitas.HasValue && r.TipoModificador == "flavor")
-            {
-                var paraLlevar = p.Reglas.Where(t => t.BloquePalomitas == r.BloquePalomitas && t.TipoModificador == "size")
-                    .SelectMany(t => t.Opciones).Any(o => ids.Contains(o.OpcionId) &&
-                        o.Nombre.Trim().Equals("Para llevar", StringComparison.OrdinalIgnoreCase));
-                maximo = Math.Min(r.Max, paraLlevar ? 4 : 2);
-            }
-            return n < r.Min || n > maximo;
-        })) throw new ConflictoCompra("Revisa las opciones de " + p.NombreProducto + ".");
+        var opciones = seleccion.Validar(p, ids);
         var precio = calculadora.Calcular(p, opciones);
         if (precio is < 0m or > 999999.99m) throw new ConflictoCompra("Importe de artículo fuera de rango.");
-        return new(p.ProductoId, linea.Cantidad, precio, ids);
+        return new(p.ProductoId, linea.Cantidad, precio, opciones.Where(o => o.OpcionId > 0).Select(o => o.OpcionId).ToArray());
     }
 
     /// <summary>Contrasta el total con el autorizado antes de asignar el folio digital.</summary>

@@ -2,13 +2,18 @@ using Cinepolis.Domain;
 
 namespace Cinepolis.Application;
 
+public interface ICotizadorDulceria
+{
+    decimal Calcular(ProductoDto producto, IReadOnlyList<OpcionDto> seleccion);
+}
+
 /// <summary>Valora cada componente con la política correspondiente a su grupo.</summary>
-public sealed class CalculadoraPrecioDulceriaContext(IEnumerable<IPrecioDulceriaStrategy> estrategias)
+public sealed class CalculadoraPrecioDulceriaContext(IEnumerable<IPrecioDulceriaStrategy> estrategias) : ICotizadorDulceria
 {
     /// <summary>Normaliza el diferencial antes de presentarlo al cliente o usarlo en una compra.</summary>
     public decimal Diferencial(PrecioOpcionCatalogo opcion)
     {
-        var combo = opcion.AguaEnCombo || opcion.TamanoPalomitasCombo || opcion.OpcionIncluidaCombo;
+        var combo = opcion.TamanoPalomitasCombo || opcion.OpcionIncluidaCombo;
         return Resolver(new GrupoPrecio(combo, false, [])).Ajustar(opcion);
     }
 
@@ -23,7 +28,7 @@ public sealed class CalculadoraPrecioDulceriaContext(IEnumerable<IPrecioDulceria
         foreach (var regla in producto.Reglas)
         {
             var grupo = new GrupoPrecio(producto.Estructura == "combo",
-                regla.BloquePalomitas.HasValue && regla.TipoModificador == "flavor",
+                regla.SaboresPalomitas,
                 regla.Opciones.Where(o => ids.Contains(o.OpcionId)).Select(o => o.Extra).ToArray());
             precio += Resolver(grupo).Diferencial(grupo);
         }

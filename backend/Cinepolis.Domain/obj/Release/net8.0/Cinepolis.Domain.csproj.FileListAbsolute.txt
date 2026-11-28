@@ -9,3 +9,4 @@ C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Releas
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Release\net8.0\refint\Cinepolis.Domain.dll
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Release\net8.0\Cinepolis.Domain.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Release\net8.0\ref\Cinepolis.Domain.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.Domain\obj\Release\net8.0\Cinepolis.Domain.sourcelink.json

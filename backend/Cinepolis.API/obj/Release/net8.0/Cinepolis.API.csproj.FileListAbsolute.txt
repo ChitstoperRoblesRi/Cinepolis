@@ -48,3 +48,4 @@ C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\obj\Release\n
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\obj\Release\net8.0\Cinepolis.API.pdb
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\obj\Release\net8.0\Cinepolis.API.genruntimeconfig.cache
 C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\obj\Release\net8.0\ref\Cinepolis.API.dll
+C:\Users\roble\OneDrive\Documentos\Cinepolis\backend\Cinepolis.API\obj\Release\net8.0\Cinepolis.API.sourcelink.json

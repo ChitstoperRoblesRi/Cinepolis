@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
-import { useCinepolis } from '../context/CinepolisContext'
+import { useLineaDulceria } from './useLineaDulceria'
 import type { CategoriaDulceriaDto, ProductoDto } from '../types/cinepolis'
 
-import { disponible, normalizarProducto, precioUnitario } from '../services/dulceria'
-import type { IDulceriaApiService } from '../types/servicios'
+import { esCombo, disponible, normalizarProducto, cotizadorDulceria } from '../services/dulceria'
+import { validadorSeleccion } from '../services/seleccion'
+import type { ICotizadorDulceria, IDulceriaApiService, IValidadorSeleccionDulceria } from '../types/servicios'
 /** Carga el catálogo del cine y añade líneas con la cotización del configurador. */
-export function useCatalogo(cine?: number, servicio: IDulceriaApiService = api) {
-  const { carrito: c } = useCinepolis()
+export function useCatalogo(cine?: number, servicio: IDulceriaApiService = api,
+  cotizador: ICotizadorDulceria = cotizadorDulceria, validador: IValidadorSeleccionDulceria = validadorSeleccion) {
+  const guardar = useLineaDulceria(cine, cotizador, validador)
   const [datos, setDatos] = useState<CategoriaDulceriaDto[]>()
   const [categoria, setCategoria] = useState(0)
   const [producto, setProducto] = useState<ProductoDto | null>(null)
@@ -27,13 +29,8 @@ export function useCatalogo(cine?: number, servicio: IDulceriaApiService = api) 
     return () => abort.abort()
   }, [cine,intento,servicio])
   function agregar(p: ProductoDto, opciones: number[], unidades = 1) {
-    if (p.precio == null || !cine) return
-    const seleccion = p.reglas.flatMap(r => r.opciones).filter(o => opciones.includes(o.opcionId))
-    const clave = [p.productoId,p.catalogoId,...opciones.slice().sort((a,b) => a-b)].join('/')
-    const cantidad = unidades + (c.productos.find(x => x.clave === clave)?.cantidad ?? 0)
-    if (cantidad > 999) { setAviso('Alcanzaste el máximo por artículo.'); return }
-    c.actualizarProducto({clave,productoId:p.productoId,catalogoId:p.catalogoId,complejoId:cine,cantidad,opciones,
-      nombre:p.nombreProducto,sabores:seleccion.map(o => o.nombre),precio:precioUnitario(p, opciones)})
+    const error = guardar(p, opciones, unidades, esCombo(p, grupo?.nombreCategoria ?? ''))
+    if (error) { setAviso(error); return }
     setProducto(null); setAviso(p.nombreProducto + ' añadido.')
   }
   const grupo = datos?.find(g => g.categoriaId === categoria)

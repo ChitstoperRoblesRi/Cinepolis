@@ -8,7 +8,11 @@ public sealed record CategoriaDto(int CategoriaId, string NombreCategoria);
 public sealed record OpcionDto(int OpcionId, string Nombre, decimal Extra, decimal? PrecioVariante);
 /// <summary>Límites de selección y opciones de un componente.</summary>
 public sealed record ReglaDto(int ReglaId, string Titulo, int Min, int Max, OpcionDto[] Opciones,
-    string? GrupoTitulo, string TipoModificador, int? BloquePalomitas = null);
+    string? GrupoTitulo, string TipoModificador, int? BloquePalomitas = null,
+    IReadOnlyDictionary<int, int>? MaximosPorTamano = null)
+{
+    public bool SaboresPalomitas => BloquePalomitas.HasValue && TipoModificador == "flavor";
+}
 /// <summary>Presentación de dulcería y reglas aplicables en su catálogo.</summary>
 public sealed record ProductoDto(int ProductoId, int CategoriaId, string NombreProducto, string Estructura,
     string? Descripcion, string? ImagenUrl, int? CatalogoId, decimal? Precio, ReglaDto[] Reglas);

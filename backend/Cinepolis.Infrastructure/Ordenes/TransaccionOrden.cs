@@ -54,7 +54,7 @@ internal sealed class TransaccionOrden(DbConnection db, DbTransaction tx, Dulcer
         var productos = new List<SeleccionCatalogo>();
         if (compra.Productos.Length > 0)
         {
-            var complejoId = await db.QuerySingleAsync<int>(Cmd(
+            var complejoId = compra.FuncionId is null ? compra.ComplejoId ?? throw new ConflictoCompra("Falta el complejo.") : await db.QuerySingleAsync<int>(Cmd(
                 "SELECT s.complejo_id FROM public.funcion f JOIN public.sala s USING (sala_id) WHERE f.funcion_id = @FuncionId", new { compra.FuncionId }));
             foreach (var grupo in compra.Productos.GroupBy(p => p.CatalogoId))
             {
@@ -93,9 +93,10 @@ internal sealed class TransaccionOrden(DbConnection db, DbTransaction tx, Dulcer
         var (cargo, _, total, folio, boletos, productos) = orden;
         var ids = boletos.Select(b => b.AsientoId).ToArray();
         int ventaId = await db.QuerySingleAsync<int>(Cmd("""
-            INSERT INTO public.venta (importe_total, cargo_servicio, forma_pago, tipo_venta, socio_id, nombre_comprador, correo_comprador)
-            VALUES (@Total, @Cargo, @FormaPago, @Canal, @SocioId, @Nombre, @Correo) RETURNING venta_id
-            """, new { total, cargo, pago.FormaPago, pago.Nombre, pago.Correo, Canal = "Online", socioId }));
+            INSERT INTO public.venta (importe_total, cargo_servicio, forma_pago, tipo_venta, socio_id, nombre_comprador, correo_comprador, complejo_id, fecha_venta)
+            VALUES (@Total, @Cargo, @FormaPago, @Canal, @SocioId, @Nombre, @Correo, @ComplejoId,
+                CURRENT_TIMESTAMP AT TIME ZONE COALESCE(@ZonaHoraria, current_setting('TimeZone'))) RETURNING venta_id
+            """, new { ZonaHoraria = ids.Length == 0 ? "America/Mexico_City" : null, orden.ComplejoId, total, cargo, pago.FormaPago, pago.Nombre, pago.Correo, Canal = "Online", socioId }));
         await db.ExecuteAsync(Cmd("""
             INSERT INTO public.detalle_venta_boleto (venta_id, asiento_id, tipo_boleto_id, precio_unitario)
             SELECT @VentaId, i.* FROM unnest(@Ids, @Tipos, @Precios) i
@@ -126,7 +127,7 @@ internal sealed class TransaccionOrden(DbConnection db, DbTransaction tx, Dulcer
         await db.ExecuteAsync(Cmd("""
             INSERT INTO public.folio (codigo, tipo_folio, tipo_uso, venta_id, socio_id)
             VALUES (@Folio, @Tipo, @Uso, @VentaId, @SocioId)
-            """, new { folio, Tipo = "Cinepass", Uso = "boletos", ventaId, socioId }));
+            """, new { folio, Tipo = "Cinepass", Uso = boletos.Count == 0 ? "alimentos" : "boletos", ventaId, socioId }));
         var ticket = await OrdenRepository.Consultar(db, tx, folio, socioId, token) ?? throw new InvalidOperationException("Falta el ticket de la venta.");
         return ticket;
     }

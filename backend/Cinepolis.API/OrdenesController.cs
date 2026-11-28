@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using Cinepolis.Application;
 using Cinepolis.Domain;
 using Microsoft.AspNetCore.DataProtection;
@@ -23,17 +23,17 @@ public sealed class OrdenesController(ServicioOrdenes ordenes, CredencialReserva
     private int? Socio => int.TryParse(User.FindFirst("sub")?.Value, out var id) ? id : null;
 
     /// <summary>Confirma boletos y dulcería en una venta y devuelve su comprobante.</summary>
-    [HttpPost("checkout")]
+    [HttpPost(""), HttpPost("checkout")]
     public async Task<ActionResult<TicketDigital>> Comprar(Checkout compra, CancellationToken token)
     {
         if (Request.Headers.ContainsKey("Authorization") && Socio is null) return Unauthorized();
         if (!ValidadorCheckout.LineasValidas(compra))
         {
-            ModelState.AddModelError("lineas", "Cada asiento debe aparecer una sola vez y las líneas deben ser válidas.");
+            ModelState.AddModelError("lineas", "Revisa las líneas de compra. Para solo dulcería indica el complejo.");
             return ValidationProblem(ModelState);
         }
         string conexion;
-        try { conexion = reservas.Abrir(compra.TokenReserva); }
+        try { conexion = compra.Asientos.Length == 0 ? string.Empty : reservas.Abrir(compra.TokenReserva!); }
         catch (CryptographicException) { return Problem(statusCode: 403, title: "La credencial de reserva es inválida o ya expiró."); }
         return Ok(await ordenes.ComprarAsync(compra, conexion, Socio, token));
     }

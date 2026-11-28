@@ -27,6 +27,8 @@ builder.Services.AddSingleton<IPrecioDulceriaStrategy>(sp => sp.GetRequiredServi
 builder.Services.AddSingleton<IPrecioDulceriaStrategy, EstrategiaSaboresPalomitasMaxExtra>();
 builder.Services.AddSingleton<IPrecioDulceriaStrategy, EstrategiaPrecioCombo>();
 builder.Services.AddSingleton<CalculadoraPrecioDulceriaContext>();
+builder.Services.AddSingleton<ICotizadorDulceria>(sp => sp.GetRequiredService<CalculadoraPrecioDulceriaContext>());
+builder.Services.AddSingleton<IValidadorSeleccionDulceria, ValidadorSeleccionDulceria>();
 builder.Services.AddSingleton<IGeneradorQr, GeneradorQr>();
 builder.Services.AddScoped<INotificadorVenta, NotificadorVenta>();
 builder.Services.AddScoped<ServicioOrdenes>();
@@ -53,6 +55,8 @@ builder.Services.AddScoped<IFuncionesCarteleraRepository>(sp => sp.GetRequiredSe
 builder.Services.AddSingleton<INormalizadorCatalogoHandler, NormalizadorCapacidadesHandler>();
 builder.Services.AddSingleton<INormalizadorCatalogoHandler, NormalizadorTamanosEstandarHandler>();
 builder.Services.AddSingleton<INormalizadorCatalogoHandler, NormalizadorCombosHandler>();
+builder.Services.AddSingleton<INormalizadorCatalogoHandler, NormalizadorEtiquetasPasoHandler>();
+builder.Services.AddSingleton<INormalizadorCatalogoHandler, NormalizadorLimitesSaboresHandler>();
 builder.Services.AddSingleton<NormalizadorCatalogo>();
 builder.Services.AddScoped<DulceriaRepository>();
 builder.Services.AddScoped<IDulceriaCatalogoRepository>(sp => sp.GetRequiredService<DulceriaRepository>());

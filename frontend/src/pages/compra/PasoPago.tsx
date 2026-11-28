@@ -1,9 +1,9 @@
 import { usePago } from '../../hooks/usePago'
-import { moneda } from './PasoBoletos'
+import { moneda } from '../../services/moneda'
 
 export function PasoPago({ boletos }: { boletos: number }) {
   const { c, perfil, total, puntos, setPuntos, error, ocupado, puedeCanjear, canje, confirmar } = usePago(boletos)
-  return <section className="paso pago"><h1>Pago</h1><form onSubmit={confirmar}><fieldset disabled={ocupado}>
+  return <section className="paso pago"><h1>Pago</h1><form id="pago-compra" onSubmit={confirmar}><fieldset disabled={ocupado}>
     <legend>Datos del comprador</legend>
     <label>Nombre completo<input required maxLength={100} name="nombre" autoComplete="name" defaultValue={perfil?.nombre}/></label>
     <label>Correo electrónico<input required maxLength={150} type="email" name="correo" autoComplete="email" defaultValue={perfil?.correo}/></label>
@@ -18,6 +18,6 @@ export function PasoPago({ boletos }: { boletos: number }) {
       <label>Código de seguridad<input name="cvc" type="password" autoComplete="off" inputMode="numeric" maxLength={3} pattern="[0-9]{3}" required/></label></div>
     </fieldset>}
     <dl>{[['Boletos',boletos],['Dulcería',c.dulceria],['Cargo por servicio',c.cargo],['Total',total]].map(([label,n]) => <div className="importe" key={label}><dt>{label}</dt><dd>{moneda(Number(n))}</dd></div>)}</dl>
-    {error && <p role="alert">{error}</p>}<button disabled={ocupado || !c.salaConectada} className="cta">{ocupado ? 'Confirmando…' : 'Confirmar compra'}</button>
+    {error && <p role="alert">{error}</p>}
     </form></section>
 }

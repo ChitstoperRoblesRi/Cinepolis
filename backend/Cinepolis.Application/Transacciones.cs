@@ -45,9 +45,9 @@ public sealed record ProductoCompra([Range(1, int.MaxValue)] int ProductoId, [Ra
 public sealed record PagoCompra([Required, RegularExpression("Tarjeta|PayPal|ClickToPay|Aplazo|Puntos")] string FormaPago, [MaxLength(100)] string? Nombre = null, [EmailAddress, MaxLength(150)] string? Correo = null,
     [MaxLength(20)] string? TarjetaClub = null, decimal? TotalEsperado = null);
 /// <summary>Reservas, artículos y pago que deben confirmarse en una sola venta.</summary>
-public sealed record Checkout([Range(1, int.MaxValue)] int FuncionId, [Required, MaxLength(2048)] string TokenReserva,
-    [Required, MinLength(1), MaxLength(100)] BoletoCompra[] Asientos,
-    [Required, MaxLength(100)] ProductoCompra[] Productos, [Required] PagoCompra Pago);
+public sealed record Checkout([Range(1, int.MaxValue)] int? FuncionId, [MaxLength(2048)] string? TokenReserva,
+    [Required, MaxLength(100)] BoletoCompra[] Asientos,
+    [Required, MaxLength(100)] ProductoCompra[] Productos, [Required] PagoCompra Pago, [Range(1, int.MaxValue)] int? ComplejoId = null);
 /// <summary>Butaca, función y precio reflejados en el comprobante.</summary>
 public sealed record BoletoTicket(int FuncionId, int AsientoId, string Fila, int Columna, string? Numero,
     string TipoBoleto, decimal PrecioUnitario, string NombreSala, string NombreComercial, string Titulo, string Horario);

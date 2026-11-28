@@ -1,4 +1,13 @@
-import type { CategoriaDulceriaDto, Checkout, DetallePeliculaDto, MapaSala, TicketDigital, Opcion } from './cinepolis'
+import type { CategoriaDulceriaDto, Checkout, DetallePeliculaDto, MapaSala, TicketDigital, Opcion, ProductoDto, Regla } from './cinepolis'
+
+export interface ICotizadorDulceria {
+  calcular(producto: ProductoDto, opciones: number[]): number
+}
+export interface IValidadorSeleccionDulceria {
+  evaluar(regla: Regla, opciones: number[]): {
+    opcional: boolean; maximo: number; valido: boolean; indicador: string; admite: (opcionId: number) => boolean
+  }
+}
 
 /** Puertos HTTP consumidos por cada caso de uso. */
 export interface IPeliculaApiService { pelicula(id: number, signal?: AbortSignal): Promise<DetallePeliculaDto> }
